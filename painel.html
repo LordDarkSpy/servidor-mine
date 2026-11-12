@@ -91,6 +91,26 @@
         </article>
       </div>
 
+      <article class="card" id="servers-card">
+        <h2>Endereço do servidor</h2>
+        <div id="servers" class="servers"></div>
+      </article>
+
+      <article class="card" id="players-card" hidden>
+        <div class="editor-head">
+          <div>
+            <h2>Jogadores</h2>
+            <p class="hint">Quem você aprova entra na whitelist na hora e passa a ver o endereço no site.</p>
+          </div>
+          <div id="player-filter" class="seg" role="tablist" aria-label="Filtrar jogadores">
+            <button type="button" role="tab" data-status="pending" aria-selected="true">Aguardando <span id="pending-count"></span></button>
+            <button type="button" role="tab" data-status="approved" aria-selected="false">Aprovados</button>
+            <button type="button" role="tab" data-status="rejected" aria-selected="false">Recusados</button>
+          </div>
+        </div>
+        <div id="player-list" class="player-list"></div>
+      </article>
+
       <article class="card editor-card">
         <div class="editor-head">
           <div>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minha conta · Crossplay Live</title>
+  <meta name="description" content="Crie sua conta, peça acesso e veja o endereço do servidor depois de aprovado.">
+  <meta name="theme-color" content="#090c13">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2316a34a' d='M16 2 29 9v14l-13 7-13-7V9z'/%3E%3Cpath fill='%2315803d' d='M16 16v14L3 23V9z'/%3E%3Cpath fill='%2386efac' d='M16 2 29 9l-13 7L3 9z'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<nav class="nav" aria-label="Principal">
+  <div class="wrap nav-row">
+    <a class="brand" href="./">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#16a34a" d="M16 2 29 9v14l-13 7-13-7V9z"/><path fill="#15803d" d="M16 16v14L3 23V9z"/><path fill="#86efac" d="M16 2 29 9l-13 7L3 9z"/></svg>
+      Crossplay Live
+    </a>
+    <div class="nav-actions">
+      <span class="status-pill" id="status" aria-live="polite"><span class="dot"></span><span data-status-text>Verificando…</span></span>
+      <a class="btn btn-ghost btn-sm" href="./">Início</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="auth-wrap">
+    <div id="flash" class="alert" role="status" hidden></div>
+
+    <!-- visitante: entrar ou criar conta -->
+    <section id="view-auth" class="panel" hidden>
+      <div class="seg" role="tablist" aria-label="Acesso">
+        <button type="button" role="tab" id="tab-login" aria-selected="true">Entrar</button>
+        <button type="button" role="tab" id="tab-signup" aria-selected="false">Criar conta</button>
+      </div>
+
+      <form id="form-auth" novalidate>
+        <h1 id="auth-title">Bem-vindo de volta</h1>
+        <p class="sub" id="auth-sub">Entre com o nick que você cadastrou.</p>
+
+        <div class="seg" role="radiogroup" aria-label="Versão do jogo">
+          <label><input type="radio" name="edition" value="java" checked><span>☕ Java (PC)</span></label>
+          <label><input type="radio" name="edition" value="bedrock"><span>📱 Bedrock</span></label>
+        </div>
+
+        <label class="field"><span id="nick-label">Nick do Minecraft</span>
+          <input name="nick" autocomplete="username" required minlength="3" maxlength="17" pattern="\.?[A-Za-z0-9_]{3,16}" spellcheck="false" autocapitalize="off">
+          <small id="nick-help">Exatamente como aparece no jogo.</small>
+        </label>
+        <label class="field">Senha
+          <input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128">
+        </label>
+
+        <div id="signup-fields" hidden>
+          <label class="field">Confirmar senha
+            <input name="password2" type="password" autocomplete="new-password" minlength="8" maxlength="128">
+          </label>
+          <label class="field">Recado para o admin <small>(opcional) Quem te convidou? De qual live você é?</small>
+            <textarea name="message" maxlength="280"></textarea>
+          </label>
+          <label class="check"><input type="checkbox" name="rules"> <span>Li e aceito as <a href="./#regras">regras do servidor</a>.</span></label>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit" id="auth-submit">Entrar</button>
+        <p class="hero-note" style="text-align:center">Sua senha é cifrada no seu aparelho antes de ser enviada.</p>
+      </form>
+    </section>
+
+    <!-- jogador logado -->
+    <section id="view-account" class="panel" hidden>
+      <div class="profile-row">
+        <div class="who">
+          <div class="avatar pixel" id="avatar" aria-hidden="true" style="display:grid;place-items:center;font-size:16px">?</div>
+          <div><b id="who-nick">—</b><span id="who-edition">—</span></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" id="logout">Sair</button>
+      </div>
+      <div id="account-state"></div>
+      <div id="servers"></div>
+    </section>
+
+    <!-- API fora do ar -->
+    <section id="view-offline" class="panel" hidden>
+      <h1>Servidor indisponível</h1>
+      <p class="sub">Não foi possível falar com o servidor agora. Ele pode estar desligado ou reiniciando. Tente de novo em alguns minutos.</p>
+      <button class="btn btn-ghost" type="button" onclick="location.reload()">Tentar de novo</button>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span>Servidor comunitário de Minecraft. Não é afiliado à Mojang, Microsoft, TikTok ou LivePix.</span>
+    <span><a href="./">Início</a> · <a href="painel.html">Painel do streamer</a></span>
+  </div>
+</footer>
+
+<script type="module" src="assets/conta.js"></script>
+</body>
+</html>

@@ -3,248 +3,98 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Servidor Crossplay + Live</title>
+  <title>Crossplay Live</title>
   <meta name="description" content="Servidor Minecraft survival para Java e Bedrock, onde presentes do TikTok e Pix na live viram eventos dentro do jogo.">
-  <meta name="theme-color" content="#14181f">
+  <meta name="theme-color" content="#090c13">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #f4f1ea;
-      --surface: #ffffff;
-      --surface-2: #ece7dc;
-      --text: #1d2026;
-      --muted: #5b6170;
-      --border: #d6cfc0;
-      --grass: #3f8f3a;
-      --grass-dark: #2e6b2a;
-      --dirt: #8a5a35;
-      --tiktok: #e5245c;
-      --pix: #1a9e8f;
-      --gold: #b9830f;
-      --t1: #3f8f3a; --t2: #2f6fbf; --t3: #b9830f; --t4: #b8323a;
-      --shadow: 0 2px 0 rgba(0,0,0,.08);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #14181f; --surface: #1c222b; --surface-2: #232a35; --text: #e9ecf1; --muted: #9aa3b2;
-        --border: #313a47; --grass: #5cbf55; --grass-dark: #3f8f3a; --dirt: #a8724a; --tiktok: #ff4f81;
-        --pix: #3cc9b8; --gold: #f0b938; --t1: #5cbf55; --t2: #5b9bea; --t3: #f0b938; --t4: #f0625f;
-        --shadow: 0 2px 0 rgba(0,0,0,.4);
-      }
-    }
-    :root[data-theme="dark"] {
-      --bg: #14181f; --surface: #1c222b; --surface-2: #232a35; --text: #e9ecf1; --muted: #9aa3b2;
-      --border: #313a47; --grass: #5cbf55; --grass-dark: #3f8f3a; --dirt: #a8724a; --tiktok: #ff4f81;
-      --pix: #3cc9b8; --gold: #f0b938; --t1: #5cbf55; --t2: #5b9bea; --t3: #f0b938; --t4: #f0625f;
-      --shadow: 0 2px 0 rgba(0,0,0,.4);
-    }
-
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-    body {
-      margin: 0; background: var(--bg); color: var(--text);
-      font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
-    .pixel { font-family: "Press Start 2P", ui-monospace, monospace; letter-spacing: .02em; }
-    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
-    a { color: inherit; }
-
-    /* topo: faixa de grama e terra */
-    .hero { position: relative; padding: 72px 0 56px; overflow: hidden; }
-    .hero::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 20px;
-      background:
-        linear-gradient(var(--grass) 0 8px, transparent 8px),
-        repeating-linear-gradient(90deg, var(--dirt) 0 16px, color-mix(in srgb, var(--dirt) 80%, #000) 16px 32px);
-    }
-    .tag { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-    .chip {
-      font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
-      background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
-    }
-    h1 { font-size: clamp(22px, 5vw, 40px); line-height: 1.35; margin: 0 0 18px; }
-    h1 .tt { color: var(--tiktok); } h1 .px { color: var(--pix); }
-    .lead { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 640px; margin: 0; }
-
-    section { padding: 56px 0; }
-    h2 { font-size: clamp(15px, 2.6vw, 20px); margin: 0 0 8px; }
-    .sub { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
-
-    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      padding: 22px; box-shadow: var(--shadow);
-    }
-    .card h3 { margin: 0 0 10px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-    .card ol { margin: 0; padding-left: 20px; } .card li { margin: 6px 0; }
-    .icon { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; flex: none; }
-    .icon svg { width: 18px; height: 18px; }
-    code, .kbd {
-      font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .92em;
-      background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
-    }
-    .note { margin-top: 16px; font-size: 14px; color: var(--muted); }
-
-    /* endereço com botão de copiar */
-    .addr {
-      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px;
-      background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
-      padding: 8px 8px 8px 12px; margin-bottom: 10px;
-    }
-    .addr-label { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-    .addr code { background: none; border: 0; padding: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
-    .copy {
-      font: 600 14px Inter, system-ui, sans-serif; color: var(--text); background: var(--surface);
-      border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; cursor: pointer; min-width: 84px;
-    }
-    .copy:hover { border-color: var(--grass); }
-    .copy:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
-    .copy.done { color: var(--grass); border-color: var(--grass); }
-    .card .addr + ol { margin-top: 14px; }
-    .tips { margin: 0; padding-left: 18px; } .tips li { margin: 6px 0; font-size: 15px; }
-
-    /* fluxo */
-    .flow { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); counter-reset: step; }
-    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; }
-    .step::before {
-      counter-increment: step; content: counter(step);
-      font-family: "Press Start 2P", monospace; font-size: 12px; color: var(--grass);
-      display: block; margin-bottom: 10px;
-    }
-    .step strong { display: block; margin-bottom: 4px; }
-    .step span { color: var(--muted); font-size: 15px; }
-
-    /* tabela de faixas */
-    .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
-    .tabs button {
-      font: 600 15px Inter, system-ui, sans-serif; color: var(--muted); background: transparent;
-      border: 0; border-radius: 7px; padding: 8px 16px; cursor: pointer;
-    }
-    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-    .tabs button:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
-    .tiers { display: grid; gap: 12px; }
-    .tier {
-      display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center;
-      background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--c);
-      border-radius: 12px; padding: 18px 20px;
-    }
-    .tier .name { font-size: 11px; color: var(--c); margin-bottom: 8px; }
-    .tier .range { font-size: 22px; font-weight: 800; white-space: nowrap; }
-    .tier .range small { font-size: 13px; font-weight: 600; color: var(--muted); display: block; }
-    .tier ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-    .tier li { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 14px; }
-    .tier li.rand { border-style: dashed; }
-    .legend { font-size: 14px; color: var(--muted); margin-top: 14px; }
-    .legend span { border: 1px dashed var(--border); border-radius: 6px; padding: 0 6px; }
-    [hidden] { display: none !important; }
-
-    .rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .rules div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 15px; }
-    .rules b { display: block; margin-bottom: 2px; }
-
-    .cta {
-      display: inline-block; font-weight: 700; text-decoration: none; padding: 10px 18px; border-radius: 8px;
-      background: var(--grass); color: #fff; box-shadow: var(--shadow);
-    }
-    .cta:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
-
-    footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
-
-    @media (max-width: 600px) {
-      .hero { padding: 48px 0 44px; }
-      section { padding: 40px 0; }
-      .tier { grid-template-columns: 1fr; gap: 10px; }
-      .tabs { display: flex; } .tabs button { flex: 1; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2316a34a' d='M16 2 29 9v14l-13 7-13-7V9z'/%3E%3Cpath fill='%2315803d' d='M16 16v14L3 23V9z'/%3E%3Cpath fill='%2386efac' d='M16 2 29 9l-13 7L3 9z'/%3E%3C/svg%3E">
 </head>
 <body>
 
-<header class="hero">
-  <div class="wrap">
-    <div class="tag">
-      <span class="chip">Minecraft 26.3</span>
-      <span class="chip">Java + Bedrock</span>
-      <span class="chip">Survival</span>
-      <span class="chip">até 40 jogadores</span>
+<nav class="nav" aria-label="Principal">
+  <div class="wrap nav-row">
+    <a class="brand" href="./">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#16a34a" d="M16 2 29 9v14l-13 7-13-7V9z"/><path fill="#15803d" d="M16 16v14L3 23V9z"/><path fill="#86efac" d="M16 2 29 9l-13 7L3 9z"/></svg>
+      Crossplay Live
+    </a>
+    <div class="nav-links">
+      <a href="#entrar">Como entrar</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#eventos">Eventos</a>
+      <a href="#regras">Regras</a>
     </div>
-    <h1 class="pixel">Sua live<br>controla o <span class="tt">caos</span>.</h1>
-    <p class="lead">Um servidor survival onde PC, celular e console jogam juntos. Durante as lives, cada <strong>presente do TikTok</strong> e cada <strong>Pix</strong> vira um evento no mundo do streamer — de comida grátis até um Warden nas costas.</p>
-    <p style="margin:24px 0 0"><a class="cta" href="painel.html">Sou streamer → Painel</a></p>
+    <div class="nav-actions">
+      <span class="status-pill" id="status" aria-live="polite"><span class="dot"></span><span data-status-text>Verificando…</span></span>
+      <a class="btn btn-primary btn-sm" href="conta.html">Entrar</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">
+        <span class="chip">Minecraft 26.3</span>
+        <span class="chip">Java + Bedrock</span>
+        <span class="chip">Survival</span>
+        <span class="chip">Até 40 jogadores</span>
+      </div>
+      <h1>Sua live controla o <span class="grad">caos</span>.</h1>
+      <p class="lead">Um servidor survival onde PC, celular e console jogam juntos. Durante as lives, cada <strong>presente do TikTok</strong> e cada <strong>Pix</strong> vira um evento no mundo do streamer, de comida grátis até um Warden nas costas.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="conta.html#cadastro">Criar conta e pedir acesso</a>
+        <a class="btn btn-ghost" href="#eventos">Ver eventos</a>
+      </div>
+      <p class="hero-note">É streamer do servidor? <a href="painel.html">Abra o painel</a>.</p>
+    </div>
+
+    <div class="feed" aria-label="Exemplo de eventos durante uma live">
+      <div class="feed-head"><span>Na live agora</span><span class="live-tag">AO VIVO</span></div>
+      <ul class="feed-list">
+        <li class="feed-item"><span class="feed-ico" aria-hidden="true">🌹</span><div><b>Ana mandou 5 Rosas</b><span>Um zumbi chamado “Ana” nasce perto do streamer</span></div></li>
+        <li class="feed-item"><span class="feed-ico" aria-hidden="true">💸</span><div><b>Pix de R$ 25,00</b><span>“manda o warden!” aparece na tela de todos</span></div></li>
+        <li class="feed-item"><span class="feed-ico" aria-hidden="true">🦁</span><div><b>Leo mandou um Leão</b><span>Raio + seis esqueletos-wither</span></div></li>
+        <li class="feed-item"><span class="feed-ico" aria-hidden="true">🍖</span><div><b>Bia mandou um GG</b><span>O streamer ganha 4 bifes</span></div></li>
+      </ul>
+    </div>
   </div>
 </header>
 
 <main>
-  <section id="entrar">
+  <section id="entrar" class="section-alt">
     <div class="wrap">
-      <h2 class="pixel">Como entrar</h2>
-      <p class="sub">Dá para entrar pelo Minecraft Java ou pelo Bedrock (celular, Windows, Xbox, PlayStation, Switch). Quem joga Bedrock não precisa ter conta Java.</p>
-      <div class="grid">
-        <article class="card">
-          <h3><span class="icon" style="background:color-mix(in srgb,var(--grass) 18%,transparent);color:var(--grass)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>Java (PC)</h3>
-          <div class="addr">
-            <span class="addr-label">Endereço</span>
-            <code>lorddarkspy.playit.plus</code>
-            <button type="button" class="copy" data-copy="lorddarkspy.playit.plus">Copiar</button>
-          </div>
-          <ol>
-            <li>Abra o Minecraft Java na versão <strong>26.3</strong>.</li>
-            <li><span class="kbd">Multijogador</span> → <span class="kbd">Adicionar servidor</span>.</li>
-            <li>Cole o endereço acima (não precisa de porta) e entre.</li>
-          </ol>
-        </article>
-        <article class="card">
-          <h3><span class="icon" style="background:color-mix(in srgb,var(--pix) 18%,transparent);color:var(--pix)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Bedrock (celular, console, Win10/11)</h3>
-          <div class="addr">
-            <span class="addr-label">Endereço</span>
-            <code>be.lorddarkspy.playit.plus</code>
-            <button type="button" class="copy" data-copy="be.lorddarkspy.playit.plus">Copiar</button>
-          </div>
-          <div class="addr">
-            <span class="addr-label">Porta</span>
-            <code>31394</code>
-            <button type="button" class="copy" data-copy="31394">Copiar</button>
-          </div>
-          <ol>
-            <li>Atualize o Minecraft para a versão mais recente.</li>
-            <li><span class="kbd">Jogar</span> → <span class="kbd">Servidores</span> → role até o fim → <span class="kbd">Adicionar servidor</span>.</li>
-            <li>Cole o endereço e a porta acima em campos separados.</li>
-          </ol>
-          <p class="note">No jogo, nicks do Bedrock aparecem com um ponto na frente, por exemplo <code>.Steve</code>.</p>
-        </article>
-        <article class="card">
-          <h3><span class="icon" style="background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg></span>Não conseguiu entrar?</h3>
-          <ul class="tips">
-            <li><b>Java:</b> confira se está na versão <strong>26.3</strong>. Snapshots não entram.</li>
-            <li><b>Bedrock:</b> a porta é <code>31394</code>, não a padrão 19132.</li>
-            <li><b>Console:</b> Xbox, PlayStation e Switch não deixam adicionar servidores direto; use um app como o <em>BedrockTogether</em> no celular na mesma rede.</li>
-            <li>Se o servidor não aparecer, ele pode estar desligado. Pergunte no grupo.</li>
-          </ul>
-        </article>
+      <p class="kicker">Acesso</p>
+      <h2>Como entrar no servidor</h2>
+      <p class="sub">O servidor é fechado: cada jogador cria uma conta e é aprovado antes de entrar. Assim só a comunidade joga.</p>
+      <div class="grid-3">
+        <article class="card"><div class="step-num">1</div><h3>Crie sua conta</h3><p>Use o seu nick do Minecraft (Java) ou o gamertag (Bedrock) e escolha uma senha.</p></article>
+        <article class="card"><div class="step-num">2</div><h3>Aguarde a aprovação</h3><p>O admin confere o cadastro. Você acompanha o status na sua conta.</p></article>
+        <article class="card"><div class="step-num">3</div><h3>Entre e jogue</h3><p>Aprovado, o endereço do servidor aparece na sua conta e o seu nick já fica liberado.</p></article>
       </div>
+      <p style="margin:28px 0 0"><a class="btn btn-primary" href="conta.html#cadastro">Criar minha conta</a></p>
     </div>
   </section>
 
   <section id="como-funciona">
     <div class="wrap">
-      <h2 class="pixel">Como a live mexe no jogo</h2>
+      <p class="kicker">Lives</p>
+      <h2>Como a live mexe no jogo</h2>
       <p class="sub">Cada streamer tem a live ligada ao próprio personagem. O que acontece depende do <strong>valor</strong> da doação.</p>
-      <div class="flow">
-        <div class="step"><strong>Você doa</strong><span>Manda um presente na live do TikTok ou um Pix pela LivePix do streamer.</span></div>
-        <div class="step"><strong>O valor define a faixa</strong><span>Presentes contam em diamantes (custo × quantidade do combo); Pix conta em reais.</span></div>
-        <div class="step"><strong>O mundo reage</strong><span>Em poucos segundos o evento acontece perto do streamer, com o seu nome na tela.</span></div>
+      <div class="grid-3">
+        <article class="card"><div class="step-num">💜</div><h3>Você doa</h3><p>Manda um presente na live do TikTok ou um Pix pela LivePix do streamer.</p></article>
+        <article class="card"><div class="step-num">📊</div><h3>O valor define a faixa</h3><p>Presentes contam em diamantes (custo × quantidade do combo); Pix conta em reais.</p></article>
+        <article class="card"><div class="step-num">⚡</div><h3>O mundo reage</h3><p>Em poucos segundos o evento acontece perto do streamer, com o seu nome na tela.</p></article>
       </div>
     </div>
   </section>
 
-  <section id="faixas">
+  <section id="eventos" class="section-alt">
     <div class="wrap">
-      <h2 class="pixel">Tabela de eventos</h2>
+      <p class="kicker">Tabela</p>
+      <h2>O que cada doação faz</h2>
       <p class="sub">Cada doação dispara apenas a faixa do seu valor.</p>
 
       <div class="tabs" role="tablist" aria-label="Tipo de doação">
@@ -296,19 +146,35 @@
 
   <section id="regras">
     <div class="wrap">
-      <h2 class="pixel">Regras rápidas</h2>
+      <p class="kicker">Combinados</p>
+      <h2>Regras rápidas</h2>
+      <p class="sub">Para o servidor continuar divertido para todo mundo.</p>
       <div class="rules">
         <div><b>Spawn protegido</b>Explosões não destroem a área do spawn.</div>
         <div><b>Mobs temporários</b>Mobs das lives somem depois de alguns minutos e não deixam drops.</div>
         <div><b>Limite anti-lag</b>Há um teto de mobs por streamer para o servidor não travar.</div>
         <div><b>Só com o streamer online</b>Doações feitas com o streamer fora do jogo entram no ranking, mas não geram evento.</div>
+        <div><b>Acesso pessoal</b>Sua aprovação vale para o seu nick. Compartilhar o endereço não libera a entrada de outras pessoas.</div>
+        <div><b>Respeito</b>Sem grief, sem trapaça e sem ofensas. Quem quebrar as regras perde o acesso.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="cta-band">
+        <div><h2>Bora jogar?</h2><p>Crie sua conta agora. A aprovação costuma sair no mesmo dia.</p></div>
+        <a class="btn btn-primary" href="conta.html#cadastro">Pedir acesso</a>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <div class="wrap">Servidor comunitário de Minecraft. Não é afiliado à Mojang, Microsoft, TikTok ou LivePix.</div>
+  <div class="wrap foot-row">
+    <span>Servidor comunitário de Minecraft. Não é afiliado à Mojang, Microsoft, TikTok ou LivePix.</span>
+    <span><a href="conta.html">Minha conta</a> · <a href="painel.html">Painel do streamer</a></span>
+  </div>
 </footer>
 
 <script>
@@ -331,46 +197,27 @@
     });
   });
 </script>
-<script>
-  // Botões "Copiar" dos endereços (com alternativa para navegadores sem a API de área de transferência)
-  document.querySelectorAll(".copy").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const value = btn.dataset.copy;
-      try {
-        await navigator.clipboard.writeText(value);
-      } catch {
-        const tmp = Object.assign(document.createElement("textarea"), { value });
-        document.body.append(tmp); tmp.select(); document.execCommand("copy"); tmp.remove();
-      }
-      btn.textContent = "Copiado!"; btn.classList.add("done");
-      setTimeout(() => { btn.textContent = "Copiar"; btn.classList.remove("done"); }, 1600);
-    });
-  });
-</script>
 <script type="module">
-  // Tabela ao vivo: usa as faixas padrão atuais do servidor. Se ele estiver offline, fica a tabela fixa acima.
+  // Status ao vivo e tabela com as faixas padrão atuais. Se o servidor estiver offline, fica a tabela fixa acima.
   import { Api } from "./assets/api.js";
   import { rangeText, describeAction, TIER_COLORS } from "./assets/tiers.js";
+  import { el, showServerStatus } from "./assets/ui.js";
 
-  const el = (tag, attrs = {}, ...kids) => {
-    const e = Object.assign(document.createElement(tag), attrs);
-    e.append(...kids.flat());
-    return e;
-  };
+  const api = new Api(undefined, null);
+  showServerStatus(api, document.getElementById("status"));
 
   try {
-    const api = new Api(undefined, null);
     const [tiers, catalog] = await Promise.all([api.publicTiers(), api.catalog()]);
     for (const kind of ["gift", "pix"]) {
       if (!tiers[kind]?.length) continue;
       const cards = tiers[kind].map((tier, i) => {
         const items = [];
-        if (tier.announce === "broadcast") items.push(el("li", { textContent: "Aviso para o servidor todo" }));
-        if (tier.sound && tier.sound !== "none") items.push(el("li", { textContent: "Som: " + (catalog.sounds.find(s => s.id === tier.sound)?.name ?? tier.sound) }));
+        if (tier.announce === "broadcast") items.push(el("li", {}, "Aviso para o servidor todo"));
+        if (tier.sound && tier.sound !== "none") items.push(el("li", {}, "Som: " + (catalog.sounds.find(s => s.id === tier.sound)?.name ?? tier.sound)));
         const random = tier.mode === "random" && tier.actions.length > 1;
-        for (const action of tier.actions) items.push(el("li", { className: random ? "rand" : "", textContent: describeAction(action, catalog) }));
+        for (const action of tier.actions) items.push(el("li", { className: random ? "rand" : "" }, describeAction(action, catalog)));
         const card = el("div", { className: "tier" },
-          el("div", {}, el("div", { className: "name pixel", textContent: tier.label }), el("div", { className: "range", textContent: rangeText(kind, tier) })),
+          el("div", {}, el("div", { className: "name pixel" }, tier.label), el("div", { className: "range" }, rangeText(kind, tier))),
           el("ul", {}, items));
         card.style.setProperty("--c", TIER_COLORS[Math.min(i, 3)]);
         return card;

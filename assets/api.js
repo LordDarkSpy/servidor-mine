@@ -1,6 +1,6 @@
 // Cliente da API do servidor + cifragem ponta a ponta (RSA-OAEP-256 + AES-256-GCM via WebCrypto).
 
-// Endereço público da API (DuckDNS). Trocar aqui quando o domínio for definido.
+// Endereço público da API (túnel HTTPS do playit).
 const PRODUCTION_API = "https://api.lorddarkspy.playit.plus";
 
 function resolveApiBase() {
@@ -49,14 +49,15 @@ export class ApiError extends Error {
 }
 
 export class Api {
-  constructor(base = API_BASE, storage = globalThis.sessionStorage) {
+  constructor(base = API_BASE, storage = globalThis.sessionStorage, tokenKey = "painel.token") {
     this.base = base;
     this.storage = storage;
+    this.tokenKey = tokenKey;
   }
 
-  get token() { try { return this.storage?.getItem("painel.token"); } catch { return null; } }
+  get token() { try { return this.storage?.getItem(this.tokenKey); } catch { return null; } }
   set token(value) {
-    try { value ? this.storage?.setItem("painel.token", value) : this.storage?.removeItem("painel.token"); } catch { /* sem storage */ }
+    try { value ? this.storage?.setItem(this.tokenKey, value) : this.storage?.removeItem(this.tokenKey); } catch { /* sem storage */ }
   }
 
   async request(method, path, { body, sealed = false, auth = true } = {}) {
@@ -107,4 +108,40 @@ export class Api {
   resetMyRules() { return this.request("DELETE", "/api/me/rules"); }
   defaultRules() { return this.request("GET", "/api/admin/rules"); }
   saveDefaultRules(rules) { return this.request("PUT", "/api/admin/rules", { body: { rules } }); }
+  serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
+
+  // aprovação de jogadores (admin)
+  players(status) { return this.request("GET", "/api/admin/players" + (status ? `?status=${status}` : "")); }
+  decidePlayer(id, action, reason) {
+    return this.request("POST", `/api/admin/players/${id}/${action}`, action === "reject" ? { body: { reason } } : {});
+  }
+  deletePlayer(id) { return this.request("DELETE", `/api/admin/players/${id}`); }
+}
+
+/** Conta de jogador do site (fica logada no aparelho por 30 dias). */
+export class PlayerApi extends Api {
+  constructor(base = API_BASE) {
+    let storage = null;
+    try { storage = globalThis.localStorage; } catch { /* sem storage: login só vale nesta página */ }
+    super(base, storage, "jogador.token");
+  }
+
+  async register(edition, nick, password, message) {
+    const r = await this.request("POST", "/api/players/register",
+      { body: { edition, nick, password, message }, sealed: true, auth: false });
+    this.token = r.token;
+    return r.player;
+  }
+
+  async login(edition, nick, password) {
+    const r = await this.request("POST", "/api/players/login", { body: { edition, nick, password }, sealed: true, auth: false });
+    this.token = r.token;
+    return r.player;
+  }
+
+  async logout() {
+    try { await this.request("POST", "/api/players/logout"); } finally { this.token = null; }
+  }
+
+  me() { return this.request("GET", "/api/players/me"); }
 }

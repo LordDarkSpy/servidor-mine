@@ -113,7 +113,92 @@ function renderMe() {
   else { s.textContent = "Conectada " + (me.livepix.status === "ativo" ? "e recebendo" : `(${me.livepix.status})`); s.className = "status ok"; }
   $("#pix-remove").hidden = !me.livepix.configured;
   $("#scope").hidden = !me.admin;
+  $("#players-card").hidden = !me.admin;
+  renderServers(me.servers);
 }
+
+// ---------------------------------------------------------------- endereço e jogadores
+
+function addressRow(label, value) {
+  const copy = h("button", { type: "button", class: "btn ghost small" }, "Copiar");
+  copy.addEventListener("click", async () => {
+    await navigator.clipboard?.writeText(value).catch(() => {});
+    copy.textContent = "Copiado!";
+    setTimeout(() => (copy.textContent = "Copiar"), 1500);
+  });
+  return h("div", { class: "addr" }, h("span", { class: "addr-label" }, label), h("code", {}, value), copy);
+}
+
+function renderServers(servers) {
+  if (!servers?.java?.address) return ($("#servers-card").hidden = true);
+  $("#servers-card").hidden = false;
+  $("#servers").replaceChildren(
+    h("div", {}, h("h3", {}, "Java"), addressRow("Endereço", servers.java.address)),
+    h("div", {}, h("h3", {}, "Bedrock"), addressRow("Endereço", servers.bedrock.address), addressRow("Porta", servers.bedrock.port)));
+}
+
+const playerState = { status: "pending" };
+const STATUS_TEXT = { pending: "aguardando", approved: "aprovado", rejected: "recusado" };
+const dateBR = (iso) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+async function playerAction(button, player, action) {
+  let reason;
+  if (action === "reject" || action === "revoke") {
+    reason = prompt(`Motivo (opcional) para ${player.nick}. Aparece para o jogador no site:`) ?? null;
+    if (reason === null) return;
+  }
+  if (action === "delete" && !confirm(`Apagar o cadastro de ${player.nick}? Ele poderá se cadastrar de novo.`)) return;
+  await busy(button, async () => {
+    if (action === "delete") {
+      await api.deletePlayer(player.id);
+      flash(`Cadastro de ${player.nick} apagado.`);
+    } else {
+      const r = await api.decidePlayer(player.id, action === "revoke" ? "reject" : action, reason);
+      const name = (player.edition === "bedrock" ? "." : "") + player.nick;
+      if (action === "approve") {
+        flash(r.whitelist.ok ? `${name} aprovado e liberado no jogo.`
+          : `${name} aprovado, mas o servidor respondeu: "${r.whitelist.response}". Confira se o nick existe.`, r.whitelist.ok);
+      } else flash(`${name} ficou sem acesso.`);
+    }
+    await loadPlayers();
+  });
+}
+
+function renderPlayer(p) {
+  const name = (p.edition === "bedrock" ? "." : "") + p.nick;
+  const buttons = [];
+  const btn = (label, action, cls = "btn small") => {
+    const b = h("button", { type: "button", class: cls }, label);
+    b.addEventListener("click", () => playerAction(b, p, action));
+    buttons.push(b);
+  };
+  if (p.status === "pending") { btn("Aprovar", "approve"); btn("Recusar", "reject", "btn ghost small danger"); }
+  if (p.status === "approved") btn("Tirar acesso", "revoke", "btn ghost small danger");
+  if (p.status === "rejected") { btn("Aprovar", "approve", "btn ghost small"); btn("Apagar", "delete", "btn ghost small danger"); }
+  return h("div", { class: "player-row" },
+    h("div", { class: "player-info" },
+      h("b", {}, name),
+      h("span", { class: "player-meta" }, `${p.edition === "bedrock" ? "Bedrock" : "Java"} · ${STATUS_TEXT[p.status]} · ${dateBR(p.created_at)}`
+        + (p.decided_by ? ` · por ${p.decided_by}` : "")),
+      p.message ? h("span", { class: "player-msg" }, `“${p.message}”`) : null,
+      p.reason ? h("span", { class: "player-meta" }, `Motivo: ${p.reason}`) : null),
+    h("div", { class: "row" }, buttons));
+}
+
+async function loadPlayers() {
+  const { players } = await api.players();
+  const pending = players.filter((p) => p.status === "pending").length;
+  $("#pending-count").textContent = pending ? `(${pending})` : "";
+  const list = players.filter((p) => p.status === playerState.status);
+  $("#player-list").replaceChildren(...(list.length ? list.map(renderPlayer)
+    : [h("p", { class: "hint" }, playerState.status === "pending" ? "Nenhum cadastro aguardando." : "Nada por aqui.")]));
+}
+
+document.querySelectorAll("#player-filter button").forEach((b) => b.addEventListener("click", () => {
+  playerState.status = b.dataset.status;
+  document.querySelectorAll("#player-filter button").forEach((x) => x.setAttribute("aria-selected", x === b));
+  loadPlayers().catch((e) => flash(e.message, false));
+}));
 
 $("#form-player").addEventListener("submit", (ev) => {
   ev.preventDefault();
@@ -347,6 +432,7 @@ async function loadApp() {
   state.me = await api.me();
   renderMe();
   show("view-app");
+  if (state.me.admin) await loadPlayers();
   await loadRules();
 }
 
