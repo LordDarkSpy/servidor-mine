@@ -61,6 +61,11 @@
             <input name="password2" type="password" autocomplete="new-password" minlength="8" maxlength="128">
           </label>
 
+          <label>Nome do personagem no servidor <small class="hint">(opcional)</small>
+            <input name="character" maxlength="16" spellcheck="false" autocapitalize="off" placeholder="Igual ao nick">
+            <small class="hint">É o nome que aparece no chat e na lista de jogadores. 3 a 16 letras, números ou _.</small>
+          </label>
+
           <label class="check"><input type="checkbox" name="is_streamer"> <span><b>Sou streamer</b>: quero ligar minha live do TikTok ao meu personagem.</span></label>
           <label id="tiktok-field" hidden>Seu @ do TikTok
             <input name="tiktok" placeholder="@seucanal" spellcheck="false" autocapitalize="off" maxlength="25">
@@ -81,6 +86,15 @@
     <!-- Conta logada -->
     <section id="view-app" hidden>
       <div id="account-state"></div>
+
+      <article class="card" id="character-card" hidden>
+        <h2>Seu personagem</h2>
+        <p class="hint">Nome que aparece no chat e na lista de jogadores (Tab). Sua conta Mojang não muda.</p>
+        <form id="form-character" class="inline">
+          <label>Nome no servidor<input name="character" maxlength="16" spellcheck="false" autocapitalize="off"></label>
+          <button class="btn small" type="submit">Salvar nome</button>
+        </form>
+      </article>
 
       <article class="card" id="servers-card" hidden>
         <h2>Como entrar no servidor</h2>

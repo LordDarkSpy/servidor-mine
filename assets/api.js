@@ -89,9 +89,9 @@ export class Api {
   serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
 
   // conta
-  async register({ edition, nick, password, message, tiktok }) {
+  async register({ edition, nick, password, message, tiktok, character }) {
     const r = await this.request("POST", "/api/account/register",
-      { body: { edition, nick, password, message, tiktok }, sealed: true, auth: false });
+      { body: { edition, nick, password, message, tiktok, character }, sealed: true, auth: false });
     this.token = r.token;
     return r.account;
   }
@@ -107,6 +107,7 @@ export class Api {
   }
 
   me() { return this.request("GET", "/api/account"); }
+  setCharacter(character) { return this.request("PUT", "/api/account/character", { body: { character } }); }
 
   // streamer
   setLivePix(client_id, client_secret) {

@@ -109,13 +109,15 @@ form.addEventListener("submit", (ev) => {
   if (password.length < 8) return flash("A senha precisa ter pelo menos 8 caracteres.", false);
   const signup = state.authMode === "signup";
   const tiktok = signup && form.is_streamer.checked ? form.tiktok.value.trim() : "";
+  const character = signup ? form.character.value.trim() : "";
   if (signup) {
     if (password !== form.password2.value) return flash("As senhas não são iguais.", false);
     if (form.is_streamer.checked && !/^@?[A-Za-z0-9_.]{2,24}$/.test(tiktok)) return flash("Informe o seu @ do TikTok.", false);
+    if (character && !/^[A-Za-z0-9_]{3,16}$/.test(character)) return flash("Nome do personagem: 3 a 16 letras, números ou _ (sem espaços).", false);
     if (!form.rules.checked) return flash("Aceite as regras do servidor para continuar.", false);
   }
   busy(ev.submitter, async () => {
-    if (signup) await api.register({ edition: edition(), nick, password, message: form.message.value.trim(), tiktok });
+    if (signup) await api.register({ edition: edition(), nick, password, message: form.message.value.trim(), tiktok, character });
     else await api.login(edition(), nick, password);
     form.reset(); updateNickLabels(); $("#tiktok-field").hidden = true;
     await loadApp();
@@ -141,7 +143,7 @@ function renderMe() {
   const me = state.me;
   const approved = me.status === "approved";
   $("#who").hidden = false;
-  $("#who-name").textContent = gameName(me);
+  $("#who-name").textContent = me.character || gameName(me);
   $("#who-badges").replaceChildren(...[
     me.admin ? h("span", { class: "badge admin" }, "admin") : null,
     me.tiktok ? h("span", { class: "badge streamer" }, "streamer") : null].filter(Boolean));
@@ -156,6 +158,11 @@ function renderMe() {
   $("#account-state").hidden = approved && (me.tiktok || me.admin);  // painéis completos dispensam o aviso
 
   renderServers(approved ? me.servers : null, me.edition);
+  $("#character-card").hidden = !approved;
+  if (approved) {
+    $("#form-character").character.value = me.character || "";
+    $("#form-character").character.placeholder = gameName(me);
+  }
 
   const s = me.streamer;
   $("#streamer-cards").hidden = !s;
@@ -291,6 +298,7 @@ function renderAccountRow(p) {
     h("div", { class: "player-info" },
       h("div", { class: "row" }, h("b", {}, gameName(p)), tags),
       h("span", { class: "player-meta" }, `${p.edition === "bedrock" ? "Bedrock" : "Java"} · ${STATUS_TEXT[p.status]} · ${dateBR(p.created_at)}`
+        + (p.character ? ` · personagem: ${p.character}` : "")
         + (p.decided_by ? ` · por ${p.decided_by}` : "")),
       p.message ? h("span", { class: "player-msg" }, `“${p.message}”`) : null,
       p.reason ? h("span", { class: "player-meta" }, `Motivo: ${p.reason}`) : null),
@@ -311,6 +319,20 @@ document.querySelectorAll("#player-filter button").forEach((b) => b.addEventList
   document.querySelectorAll("#player-filter button").forEach((x) => x.setAttribute("aria-selected", x === b));
   busy(null, loadPlayers);
 }));
+
+// ---------------------------------------------------------------- personagem
+
+$("#form-character").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const name = ev.target.character.value.trim();
+  if (name && !/^[A-Za-z0-9_]{3,16}$/.test(name)) return flash("Nome do personagem: 3 a 16 letras, números ou _ (sem espaços).", false);
+  busy(ev.submitter, async () => {
+    const r = await api.setCharacter(name);
+    state.me = r.account;
+    renderMe();
+    flash(r.account.character ? `Pronto! No servidor você aparece como ${r.account.character}.` : "Pronto! No servidor você aparece com o seu nick.");
+  });
+});
 
 // ---------------------------------------------------------------- LivePix
 
