@@ -1,7 +1,7 @@
 // Cliente da API do servidor + cifragem ponta a ponta (RSA-OAEP-256 + AES-256-GCM via WebCrypto).
 
 // Endereço público da API (DuckDNS). Trocar aqui quando o domínio for definido.
-const PRODUCTION_API = "https://SEU-SUBDOMINIO.duckdns.org";
+const PRODUCTION_API = "https://api.lorddarkspy.playit.plus";
 
 function resolveApiBase() {
   // Só em testes locais é permitido apontar para outra API (evita links maliciosos em produção).
