@@ -91,54 +91,42 @@
 
   <section id="eventos" class="section-alt">
     <div class="wrap">
-      <p class="kicker">Tabela</p>
-      <h2>O que cada doação faz</h2>
-      <p class="sub">Cada doação dispara apenas a faixa do seu valor.</p>
+      <p class="kicker">Eventos</p>
+      <h2>O que pode acontecer na live</h2>
+      <p class="sub">Presentes e Pix disparam eventos no mundo do streamer. Alguns exemplos do que pode aparecer:</p>
 
-      <div class="tabs" role="tablist" aria-label="Tipo de doação">
-        <button role="tab" id="tab-gift" aria-controls="panel-gift" aria-selected="true">Presentes TikTok</button>
-        <button role="tab" id="tab-pix" aria-controls="panel-pix" aria-selected="false" tabindex="-1">Pix</button>
+      <div class="showcase">
+        <article class="show-card" style="--c:var(--t4)">
+          <span class="show-ico" aria-hidden="true">🧟</span>
+          <h3>Mobs com o seu nome</h3>
+          <p>Zumbis, esqueletos, creepers e, nas doações maiores, Warden e Wither.</p>
+        </article>
+        <article class="show-card" style="--c:var(--t2)">
+          <span class="show-ico" aria-hidden="true">💎</span>
+          <h3>Presentes</h3>
+          <p>Comida, maçãs douradas, diamantes, netherite e até totens da imortalidade.</p>
+        </article>
+        <article class="show-card" style="--c:var(--t1)">
+          <span class="show-ico" aria-hidden="true">⚗️</span>
+          <h3>Efeitos</h3>
+          <p>Velocidade, força e regeneração para ajudar, ou cegueira e lentidão para atrapalhar.</p>
+        </article>
+        <article class="show-card" style="--c:var(--t3)">
+          <span class="show-ico" aria-hidden="true">💥</span>
+          <h3>Caos</h3>
+          <p>TNT acesa, raio, um buraco que se abre embaixo dos pés ou um arremesso para o céu.</p>
+        </article>
+        <article class="show-card" style="--c:var(--brand-2)">
+          <span class="show-ico" aria-hidden="true">📣</span>
+          <h3>Seu nome na tela</h3>
+          <p>Títulos com o seu nome e a sua mensagem, sons épicos e avisos para o servidor todo.</p>
+        </article>
+        <article class="show-card" style="--c:var(--pix)">
+          <span class="show-ico" aria-hidden="true">🎚️</span>
+          <h3>Do jeito do streamer</h3>
+          <p>Quanto maior a doação, maior o evento. Cada streamer pode montar os eventos da própria live.</p>
+        </article>
       </div>
-
-      <div id="panel-gift" role="tabpanel" aria-labelledby="tab-gift" class="tiers">
-        <div class="tier" style="--c:var(--t1)">
-          <div><div class="name pixel">Pequena</div><div class="range">1–9 💎<small>Rosa, TikTok, GG…</small></div></div>
-          <ul><li class="rand">4 bifes</li><li class="rand">Velocidade</li><li class="rand">1 zumbi com seu nome</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t2)">
-          <div><div class="name pixel">Média</div><div class="range">10–99 💎</div></div>
-          <ul><li class="rand">Horda de 4 zumbis</li><li class="rand">3 esqueletos</li><li class="rand">2 maçãs douradas</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t3)">
-          <div><div class="name pixel">Grande</div><div class="range">100–999 💎</div></div>
-          <ul><li>Rugido do dragão</li><li class="rand">Warden</li><li class="rand">8 diamantes</li><li class="rand">3 TNTs</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t4)">
-          <div><div class="name pixel">Lendária</div><div class="range">1000+ 💎<small>Leão, Universo…</small></div></div>
-          <ul><li>Aviso para o servidor todo</li><li>6 esqueletos-wither</li><li>Raio</li></ul>
-        </div>
-      </div>
-
-      <div id="panel-pix" role="tabpanel" aria-labelledby="tab-pix" class="tiers" hidden>
-        <div class="tier" style="--c:var(--t1)">
-          <div><div class="name pixel">Pequena</div><div class="range">R$ 1–4,99</div></div>
-          <ul><li>Sua mensagem na tela</li><li class="rand">8 cenouras douradas</li><li class="rand">2 zumbis</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t2)">
-          <div><div class="name pixel">Média</div><div class="range">R$ 5–19,99</div></div>
-          <ul><li>Som de level up</li><li class="rand">2 creepers</li><li class="rand">3 diamantes</li><li class="rand">Força II</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t3)">
-          <div><div class="name pixel">Grande</div><div class="range">R$ 20–99,99</div></div>
-          <ul><li>Aviso para o servidor todo</li><li class="rand">Warden</li><li class="rand">Barra de netherite</li><li class="rand">5 TNTs</li></ul>
-        </div>
-        <div class="tier" style="--c:var(--t4)">
-          <div><div class="name pixel">Lendária</div><div class="range">R$ 100+</div></div>
-          <ul><li>Aviso para o servidor todo</li><li>Wither</li><li>Raio</li></ul>
-        </div>
-      </div>
-
-      <p class="legend">Itens com borda <span>tracejada</span> são sorteados: sai um deles. Esta é a tabela padrão; cada streamer pode personalizar a dele.</p>
     </div>
   </section>
 
@@ -175,54 +163,11 @@
   </div>
 </footer>
 
-<script>
-  // Abas acessíveis (setas do teclado alternam)
-  const tabs = [...document.querySelectorAll('[role="tab"]')];
-  function select(tab) {
-    tabs.forEach(t => {
-      const on = t === tab;
-      t.setAttribute('aria-selected', on);
-      t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-    });
-  }
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => select(tab));
-    tab.addEventListener('keydown', e => {
-      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
-      select(next); next.focus();
-    });
-  });
-</script>
 <script type="module">
-  // Status ao vivo e tabela com as faixas padrão atuais. Se o servidor estiver offline, fica a tabela fixa acima.
+  // Status do servidor ao vivo na navegação
   import { Api } from "./assets/api.js";
-  import { rangeText, describeAction, TIER_COLORS } from "./assets/tiers.js";
-  import { el, showServerStatus } from "./assets/ui.js";
-
-  const api = new Api(undefined, null);
-  showServerStatus(api, document.getElementById("status"));
-
-  try {
-    const [tiers, catalog] = await Promise.all([api.publicTiers(), api.catalog()]);
-    for (const kind of ["gift", "pix"]) {
-      if (!tiers[kind]?.length) continue;
-      const cards = tiers[kind].map((tier, i) => {
-        const items = [];
-        if (tier.announce === "broadcast") items.push(el("li", {}, "Aviso para o servidor todo"));
-        if (tier.sound && tier.sound !== "none") items.push(el("li", {}, "Som: " + (catalog.sounds.find(s => s.id === tier.sound)?.name ?? tier.sound)));
-        const random = tier.mode === "random" && tier.actions.length > 1;
-        for (const action of tier.actions) items.push(el("li", { className: random ? "rand" : "" }, describeAction(action, catalog)));
-        const card = el("div", { className: "tier" },
-          el("div", {}, el("div", { className: "name pixel" }, tier.label), el("div", { className: "range" }, rangeText(kind, tier))),
-          el("ul", {}, items));
-        card.style.setProperty("--c", TIER_COLORS[Math.min(i, 3)]);
-        return card;
-      });
-      document.getElementById(`panel-${kind}`).replaceChildren(...cards);
-    }
-  } catch { /* servidor offline: mantém a tabela estática */ }
+  import { showServerStatus } from "./assets/ui.js";
+  showServerStatus(new Api(undefined, null), document.getElementById("status"));
 </script>
 </body>
 </html>

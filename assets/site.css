@@ -236,3 +236,12 @@ footer { border-top: 1px solid var(--border); padding: 32px 0 48px; color: var(-
   .auth-wrap { margin-top: 28px; }
   .cta-band { padding: 24px; }
 }
+
+/* vitrine de eventos */
+.showcase { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.show-card { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.show-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c); }
+.show-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; margin-bottom: 14px;
+  background: color-mix(in srgb, var(--c) 14%, transparent); }
+.show-card h3 { margin: 0 0 6px; font-size: 18px; }
+.show-card p { margin: 0; color: var(--muted); font-size: 15px; }
