@@ -23,6 +23,7 @@ export function describeAction(action, catalog) {
     case "heal": return "Cura total";
     case "feed": return "Mata a fome";
     case "launch": return "Arremessa para cima";
+    case "hole": return `Buraco ${action.size}×${action.size} sob os pés`;
     default: return action.type;
   }
 }

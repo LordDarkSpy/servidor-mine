@@ -174,6 +174,7 @@ function newAction(type) {
     case "give_item": return { type, item: c.items[0].id, amount: 1, weight: 1 };
     case "effect": return { type, effect: c.effects[0].id, duration: 20, amplifier: 0, weight: 1 };
     case "tnt": return { type, amount: 1, weight: 1 };
+    case "hole": return { type, size: 4, depth: 3, weight: 1 };
     default: return { type, weight: 1 };
   }
 }
@@ -218,6 +219,11 @@ function actionParams(action) {
       ];
     case "tnt":
       return [numberInput("Qtd.", action.amount, { max: c.limits.tnt_max, onchange: (v) => (action.amount = v) })];
+    case "hole":
+      return [
+        numberInput("Tamanho", action.size, { min: 2, max: c.limits.hole_size_max, onchange: (v) => (action.size = v) }),
+        numberInput("Fundo", action.depth, { max: c.limits.hole_depth_max, onchange: (v) => (action.depth = v) }),
+      ];
     default:
       return [h("span", { class: "static" }, "Sem opções")];
   }
