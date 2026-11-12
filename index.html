@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Servidor Crossplay + Live</title>
+  <meta name="description" content="Servidor Minecraft survival para Java e Bedrock, onde presentes do TikTok e Pix na live viram eventos dentro do jogo.">
+  <meta name="theme-color" content="#14181f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --surface: #ffffff;
+      --surface-2: #ece7dc;
+      --text: #1d2026;
+      --muted: #5b6170;
+      --border: #d6cfc0;
+      --grass: #3f8f3a;
+      --grass-dark: #2e6b2a;
+      --dirt: #8a5a35;
+      --tiktok: #e5245c;
+      --pix: #1a9e8f;
+      --gold: #b9830f;
+      --t1: #3f8f3a; --t2: #2f6fbf; --t3: #b9830f; --t4: #b8323a;
+      --shadow: 0 2px 0 rgba(0,0,0,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #14181f; --surface: #1c222b; --surface-2: #232a35; --text: #e9ecf1; --muted: #9aa3b2;
+        --border: #313a47; --grass: #5cbf55; --grass-dark: #3f8f3a; --dirt: #a8724a; --tiktok: #ff4f81;
+        --pix: #3cc9b8; --gold: #f0b938; --t1: #5cbf55; --t2: #5b9bea; --t3: #f0b938; --t4: #f0625f;
+        --shadow: 0 2px 0 rgba(0,0,0,.4);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #14181f; --surface: #1c222b; --surface-2: #232a35; --text: #e9ecf1; --muted: #9aa3b2;
+      --border: #313a47; --grass: #5cbf55; --grass-dark: #3f8f3a; --dirt: #a8724a; --tiktok: #ff4f81;
+      --pix: #3cc9b8; --gold: #f0b938; --t1: #5cbf55; --t2: #5b9bea; --t3: #f0b938; --t4: #f0625f;
+      --shadow: 0 2px 0 rgba(0,0,0,.4);
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .pixel { font-family: "Press Start 2P", ui-monospace, monospace; letter-spacing: .02em; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+    a { color: inherit; }
+
+    /* topo: faixa de grama e terra */
+    .hero { position: relative; padding: 72px 0 56px; overflow: hidden; }
+    .hero::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 20px;
+      background:
+        linear-gradient(var(--grass) 0 8px, transparent 8px),
+        repeating-linear-gradient(90deg, var(--dirt) 0 16px, color-mix(in srgb, var(--dirt) 80%, #000) 16px 32px);
+    }
+    .tag { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .chip {
+      font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+    }
+    h1 { font-size: clamp(22px, 5vw, 40px); line-height: 1.35; margin: 0 0 18px; }
+    h1 .tt { color: var(--tiktok); } h1 .px { color: var(--pix); }
+    .lead { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 640px; margin: 0; }
+
+    section { padding: 56px 0; }
+    h2 { font-size: clamp(15px, 2.6vw, 20px); margin: 0 0 8px; }
+    .sub { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
+
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px; box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 10px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .card ol { margin: 0; padding-left: 20px; } .card li { margin: 6px 0; }
+    .icon { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; flex: none; }
+    .icon svg { width: 18px; height: 18px; }
+    code, .kbd {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .92em;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
+    }
+    .note { margin-top: 16px; font-size: 14px; color: var(--muted); }
+
+    /* fluxo */
+    .flow { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); counter-reset: step; }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      font-family: "Press Start 2P", monospace; font-size: 12px; color: var(--grass);
+      display: block; margin-bottom: 10px;
+    }
+    .step strong { display: block; margin-bottom: 4px; }
+    .step span { color: var(--muted); font-size: 15px; }
+
+    /* tabela de faixas */
+    .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+    .tabs button {
+      font: 600 15px Inter, system-ui, sans-serif; color: var(--muted); background: transparent;
+      border: 0; border-radius: 7px; padding: 8px 16px; cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    .tabs button:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
+    .tiers { display: grid; gap: 12px; }
+    .tier {
+      display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center;
+      background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--c);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .tier .name { font-size: 11px; color: var(--c); margin-bottom: 8px; }
+    .tier .range { font-size: 22px; font-weight: 800; white-space: nowrap; }
+    .tier .range small { font-size: 13px; font-weight: 600; color: var(--muted); display: block; }
+    .tier ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+    .tier li { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 14px; }
+    .tier li.rand { border-style: dashed; }
+    .legend { font-size: 14px; color: var(--muted); margin-top: 14px; }
+    .legend span { border: 1px dashed var(--border); border-radius: 6px; padding: 0 6px; }
+    [hidden] { display: none !important; }
+
+    .rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .rules div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 15px; }
+    .rules b { display: block; margin-bottom: 2px; }
+
+    footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 48px 0 44px; }
+      section { padding: 40px 0; }
+      .tier { grid-template-columns: 1fr; gap: 10px; }
+      .tabs { display: flex; } .tabs button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="tag">
+      <span class="chip">Minecraft 26.3</span>
+      <span class="chip">Java + Bedrock</span>
+      <span class="chip">Survival</span>
+      <span class="chip">até 40 jogadores</span>
+    </div>
+    <h1 class="pixel">Sua live<br>controla o <span class="tt">caos</span>.</h1>
+    <p class="lead">Um servidor survival onde PC, celular e console jogam juntos. Durante as lives, cada <strong>presente do TikTok</strong> e cada <strong>Pix</strong> vira um evento no mundo do streamer — de comida grátis até um Warden nas costas.</p>
+  </div>
+</header>
+
+<main>
+  <section id="entrar">
+    <div class="wrap">
+      <h2 class="pixel">Como entrar</h2>
+      <p class="sub">Dá para entrar pelo Minecraft Java ou pelo Bedrock (celular, Windows, Xbox, PlayStation, Switch). Quem joga Bedrock não precisa ter conta Java.</p>
+      <div class="grid">
+        <article class="card">
+          <h3><span class="icon" style="background:color-mix(in srgb,var(--grass) 18%,transparent);color:var(--grass)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>Java (PC)</h3>
+          <ol>
+            <li>Abra o Minecraft Java na versão <strong>26.3</strong>.</li>
+            <li><span class="kbd">Multijogador</span> → <span class="kbd">Adicionar servidor</span>.</li>
+            <li>Cole o endereço do servidor e entre.</li>
+          </ol>
+        </article>
+        <article class="card">
+          <h3><span class="icon" style="background:color-mix(in srgb,var(--pix) 18%,transparent);color:var(--pix)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Bedrock (celular, console, Win10/11)</h3>
+          <ol>
+            <li>Atualize o Minecraft para a versão mais recente.</li>
+            <li><span class="kbd">Jogar</span> → <span class="kbd">Servidores</span> → <span class="kbd">Adicionar servidor</span>.</li>
+            <li>Cole o endereço e use a porta <code>19132</code>.</li>
+          </ol>
+          <p class="note">No jogo, nicks do Bedrock aparecem com um ponto na frente, por exemplo <code>.Steve</code>.</p>
+        </article>
+        <article class="card">
+          <h3><span class="icon" style="background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>Endereço do servidor</h3>
+          <p style="margin:0">O endereço é enviado só para os participantes. Peça para o dono do servidor ou no grupo da comunidade.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="como-funciona">
+    <div class="wrap">
+      <h2 class="pixel">Como a live mexe no jogo</h2>
+      <p class="sub">Cada streamer tem a live ligada ao próprio personagem. O que acontece depende do <strong>valor</strong> da doação.</p>
+      <div class="flow">
+        <div class="step"><strong>Você doa</strong><span>Manda um presente na live do TikTok ou um Pix pela LivePix do streamer.</span></div>
+        <div class="step"><strong>O valor define a faixa</strong><span>Presentes contam em diamantes (custo × quantidade do combo); Pix conta em reais.</span></div>
+        <div class="step"><strong>O mundo reage</strong><span>Em poucos segundos o evento acontece perto do streamer, com o seu nome na tela.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faixas">
+    <div class="wrap">
+      <h2 class="pixel">Tabela de eventos</h2>
+      <p class="sub">Cada doação dispara apenas a faixa do seu valor.</p>
+
+      <div class="tabs" role="tablist" aria-label="Tipo de doação">
+        <button role="tab" id="tab-gift" aria-controls="panel-gift" aria-selected="true">Presentes TikTok</button>
+        <button role="tab" id="tab-pix" aria-controls="panel-pix" aria-selected="false" tabindex="-1">Pix</button>
+      </div>
+
+      <div id="panel-gift" role="tabpanel" aria-labelledby="tab-gift" class="tiers">
+        <div class="tier" style="--c:var(--t1)">
+          <div><div class="name pixel">Pequena</div><div class="range">1–9 💎<small>Rosa, TikTok, GG…</small></div></div>
+          <ul><li class="rand">4 bifes</li><li class="rand">Velocidade</li><li class="rand">1 zumbi com seu nome</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t2)">
+          <div><div class="name pixel">Média</div><div class="range">10–99 💎</div></div>
+          <ul><li class="rand">Horda de 4 zumbis</li><li class="rand">3 esqueletos</li><li class="rand">2 maçãs douradas</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t3)">
+          <div><div class="name pixel">Grande</div><div class="range">100–999 💎</div></div>
+          <ul><li>Rugido do dragão</li><li class="rand">Warden</li><li class="rand">8 diamantes</li><li class="rand">3 TNTs</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t4)">
+          <div><div class="name pixel">Lendária</div><div class="range">1000+ 💎<small>Leão, Universo…</small></div></div>
+          <ul><li>Aviso para o servidor todo</li><li>6 esqueletos-wither</li><li>Raio</li></ul>
+        </div>
+      </div>
+
+      <div id="panel-pix" role="tabpanel" aria-labelledby="tab-pix" class="tiers" hidden>
+        <div class="tier" style="--c:var(--t1)">
+          <div><div class="name pixel">Pequena</div><div class="range">R$ 1–4,99</div></div>
+          <ul><li>Sua mensagem na tela</li><li class="rand">8 cenouras douradas</li><li class="rand">2 zumbis</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t2)">
+          <div><div class="name pixel">Média</div><div class="range">R$ 5–19,99</div></div>
+          <ul><li>Som de level up</li><li class="rand">2 creepers</li><li class="rand">3 diamantes</li><li class="rand">Força II</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t3)">
+          <div><div class="name pixel">Grande</div><div class="range">R$ 20–99,99</div></div>
+          <ul><li>Aviso para o servidor todo</li><li class="rand">Warden</li><li class="rand">Barra de netherite</li><li class="rand">5 TNTs</li></ul>
+        </div>
+        <div class="tier" style="--c:var(--t4)">
+          <div><div class="name pixel">Lendária</div><div class="range">R$ 100+</div></div>
+          <ul><li>Aviso para o servidor todo</li><li>Wither</li><li>Raio</li></ul>
+        </div>
+      </div>
+
+      <p class="legend">Itens com borda <span>tracejada</span> são sorteados: sai um deles.</p>
+    </div>
+  </section>
+
+  <section id="regras">
+    <div class="wrap">
+      <h2 class="pixel">Regras rápidas</h2>
+      <div class="rules">
+        <div><b>Spawn protegido</b>Explosões não destroem a área do spawn.</div>
+        <div><b>Mobs temporários</b>Mobs das lives somem depois de alguns minutos e não deixam drops.</div>
+        <div><b>Limite anti-lag</b>Há um teto de mobs por streamer para o servidor não travar.</div>
+        <div><b>Só com o streamer online</b>Doações feitas com o streamer fora do jogo entram no ranking, mas não geram evento.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Servidor comunitário de Minecraft. Não é afiliado à Mojang, Microsoft, TikTok ou LivePix.</div>
+</footer>
+
+<script>
+  // Abas acessíveis (setas do teclado alternam)
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function select(tab) {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      select(next); next.focus();
+    });
+  });
+</script>
+</body>
+</html>
