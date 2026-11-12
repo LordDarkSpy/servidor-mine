@@ -123,3 +123,7 @@ input:user-invalid { border-color: var(--danger); }
 .player-info b { font-size: 16px; overflow-wrap: anywhere; }
 .player-meta { font-size: 13px; color: var(--muted); }
 .player-msg { font-size: 14px; font-style: italic; }
+.player-cta { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+.player-cta h2 { margin-bottom: 4px; }
+.player-cta .hint { margin: 0; }
+.player-cta a.btn { text-decoration: none; display: inline-block; }
