@@ -48,8 +48,13 @@ export class ApiError extends Error {
   }
 }
 
+function defaultStorage() {
+  try { return globalThis.localStorage; } catch { return null; }  // sem storage: o login vale só nesta página
+}
+
+/** Cliente da API. A conta é única (nick + senha) e fica logada no aparelho por 30 dias. */
 export class Api {
-  constructor(base = API_BASE, storage = globalThis.sessionStorage, tokenKey = "painel.token") {
+  constructor(base = API_BASE, storage = defaultStorage(), tokenKey = "conta.token") {
     this.base = base;
     this.storage = storage;
     this.tokenKey = tokenKey;
@@ -78,27 +83,32 @@ export class Api {
     return data;
   }
 
+  // públicos
   catalog() { return this.request("GET", "/api/catalog", { auth: false }); }
   publicTiers() { return this.request("GET", "/api/public/tiers", { auth: false }); }
+  serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
 
-  async register(invite, player, password) {
-    const r = await this.request("POST", "/api/register", { body: { invite, player, password }, sealed: true, auth: false });
+  // conta
+  async register({ edition, nick, password, message, tiktok }) {
+    const r = await this.request("POST", "/api/account/register",
+      { body: { edition, nick, password, message, tiktok }, sealed: true, auth: false });
     this.token = r.token;
-    return r;
+    return r.account;
   }
 
-  async login(tiktok, password) {
-    const r = await this.request("POST", "/api/login", { body: { tiktok, password }, sealed: true, auth: false });
+  async login(edition, nick, password) {
+    const r = await this.request("POST", "/api/account/login", { body: { edition, nick, password }, sealed: true, auth: false });
     this.token = r.token;
-    return r;
+    return r.account;
   }
 
   async logout() {
-    try { await this.request("POST", "/api/logout"); } finally { this.token = null; }
+    try { await this.request("POST", "/api/account/logout"); } finally { this.token = null; }
   }
 
-  me() { return this.request("GET", "/api/me"); }
-  setPlayer(player) { return this.request("PUT", "/api/me/player", { body: { player } }); }
+  me() { return this.request("GET", "/api/account"); }
+
+  // streamer
   setLivePix(client_id, client_secret) {
     return this.request("PUT", "/api/me/livepix", { body: { client_id, client_secret }, sealed: true });
   }
@@ -106,42 +116,15 @@ export class Api {
   myRules() { return this.request("GET", "/api/me/rules"); }
   saveMyRules(rules) { return this.request("PUT", "/api/me/rules", { body: { rules } }); }
   resetMyRules() { return this.request("DELETE", "/api/me/rules"); }
+
+  // admin
   defaultRules() { return this.request("GET", "/api/admin/rules"); }
   saveDefaultRules(rules) { return this.request("PUT", "/api/admin/rules", { body: { rules } }); }
-  serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
-
-  // aprovação de jogadores (admin)
   players(status) { return this.request("GET", "/api/admin/players" + (status ? `?status=${status}` : "")); }
   decidePlayer(id, action, reason) {
     return this.request("POST", `/api/admin/players/${id}/${action}`, action === "reject" ? { body: { reason } } : {});
   }
+  setStreamer(id, tiktok) { return this.request("PUT", `/api/admin/players/${id}/streamer`, { body: { tiktok } }); }
+  setAdmin(id, admin) { return this.request("PUT", `/api/admin/players/${id}/admin`, { body: { admin } }); }
   deletePlayer(id) { return this.request("DELETE", `/api/admin/players/${id}`); }
-}
-
-/** Conta de jogador do site (fica logada no aparelho por 30 dias). */
-export class PlayerApi extends Api {
-  constructor(base = API_BASE) {
-    let storage = null;
-    try { storage = globalThis.localStorage; } catch { /* sem storage: login só vale nesta página */ }
-    super(base, storage, "jogador.token");
-  }
-
-  async register(edition, nick, password, message) {
-    const r = await this.request("POST", "/api/players/register",
-      { body: { edition, nick, password, message }, sealed: true, auth: false });
-    this.token = r.token;
-    return r.player;
-  }
-
-  async login(edition, nick, password) {
-    const r = await this.request("POST", "/api/players/login", { body: { edition, nick, password }, sealed: true, auth: false });
-    this.token = r.token;
-    return r.player;
-  }
-
-  async logout() {
-    try { await this.request("POST", "/api/players/logout"); } finally { this.token = null; }
-  }
-
-  me() { return this.request("GET", "/api/players/me"); }
 }

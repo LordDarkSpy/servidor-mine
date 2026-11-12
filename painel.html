@@ -3,22 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Painel do Streamer</title>
-  <meta name="description" content="Painel dos streamers: cadastro, conta LivePix e configuração dos eventos de presentes e Pix.">
+  <title>Minha conta · Crossplay Live</title>
+  <meta name="description" content="Entre ou crie sua conta, aguarde a aprovação e acesse o seu painel: endereço do servidor, LivePix e eventos da live.">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#14181f">
+  <meta name="theme-color" content="#090c13">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/painel.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2316a34a' d='M16 2 29 9v14l-13 7-13-7V9z'/%3E%3Cpath fill='%2315803d' d='M16 16v14L3 23V9z'/%3E%3Cpath fill='%2386efac' d='M16 2 29 9l-13 7L3 9z'/%3E%3C/svg%3E">
 </head>
 <body>
   <header class="top">
     <div class="wrap top-row">
-      <a class="brand pixel" href="./">← Servidor</a>
+      <a class="brand-link" href="./">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#16a34a" d="M16 2 29 9v14l-13 7-13-7V9z"/><path fill="#15803d" d="M16 16v14L3 23V9z"/><path fill="#86efac" d="M16 2 29 9l-13 7L3 9z"/></svg>
+        <span class="brand-text">Crossplay Live</span>
+      </a>
       <div id="who" class="who" hidden>
         <span id="who-name"></span>
+        <span id="who-badges" class="badges"></span>
         <button id="logout" class="btn ghost small" type="button">Sair</button>
       </div>
     </div>
@@ -27,56 +32,70 @@
   <main class="wrap">
     <div id="flash" class="flash" role="status" aria-live="polite" hidden></div>
 
-    <!-- Entrar / cadastrar -->
-    <section id="view-auth" hidden>
-      <h1 class="pixel">Painel do streamer</h1>
-      <p class="sub">Configure sua conta Pix e os eventos da sua live. Senhas e chaves são <strong>cifradas no seu navegador</strong> antes de sair daqui: só o servidor consegue ler.</p>
-
-      <div class="auth-grid">
-        <form id="form-login" class="card" autocomplete="on">
-          <h2>Entrar</h2>
-          <label>Seu @ do TikTok<input name="tiktok" required autocomplete="username" placeholder="@seucanal"></label>
-          <label>Senha<input name="password" type="password" required autocomplete="current-password" minlength="8"></label>
-          <button class="btn" type="submit">Entrar</button>
-        </form>
-
-        <form id="form-register" class="card" autocomplete="off">
-          <h2>Primeiro acesso</h2>
-          <p class="hint">Peça um código de convite ao dono do servidor.</p>
-          <label>Código de convite<input name="invite" required placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" spellcheck="false"></label>
-          <label>Seu nick no Minecraft<input name="player" required placeholder="Steve ou .Steve (Bedrock)" pattern="\.?[A-Za-z0-9_]{3,16}"></label>
-          <label>Crie uma senha<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
-          <label>Repita a senha<input name="password2" type="password" required minlength="8" autocomplete="new-password"></label>
-          <button class="btn" type="submit">Criar conta</button>
-        </form>
-      </div>
-
-      <div class="card player-cta">
-        <div>
-          <h2>Sou jogador</h2>
-          <p class="hint">Não é streamer? Crie sua conta de jogador ou entre nela para pedir acesso e ver o endereço do servidor.</p>
+    <!-- Entrar / criar conta -->
+    <section id="view-auth" class="auth" hidden>
+      <form id="form-auth" class="card auth-card" novalidate>
+        <div class="seg tabs2" role="tablist" aria-label="Acesso">
+          <button type="button" role="tab" id="tab-login" aria-selected="true">Entrar</button>
+          <button type="button" role="tab" id="tab-signup" aria-selected="false">Criar conta</button>
         </div>
-        <div class="row">
-          <a class="btn" href="conta.html">Entrar como jogador</a>
-          <a class="btn ghost" href="conta.html#cadastro">Criar conta</a>
+
+        <h1 id="auth-title">Bem-vindo de volta</h1>
+        <p class="sub" id="auth-sub">Entre com o nick que você cadastrou.</p>
+
+        <div class="seg editions" role="radiogroup" aria-label="Versão do jogo">
+          <label><input type="radio" name="edition" value="java" checked><span>☕ Java (PC)</span></label>
+          <label><input type="radio" name="edition" value="bedrock"><span>📱 Bedrock</span></label>
         </div>
-      </div>
+
+        <label><span id="nick-label">Nick do Minecraft</span>
+          <input name="nick" autocomplete="username" required minlength="3" maxlength="17" spellcheck="false" autocapitalize="off">
+          <small id="nick-help" class="hint">Exatamente como aparece no jogo.</small>
+        </label>
+        <label>Senha
+          <input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128">
+        </label>
+
+        <div id="signup-fields" hidden>
+          <label>Confirmar senha
+            <input name="password2" type="password" autocomplete="new-password" minlength="8" maxlength="128">
+          </label>
+
+          <label class="check"><input type="checkbox" name="is_streamer"> <span><b>Sou streamer</b>: quero ligar minha live do TikTok ao meu personagem.</span></label>
+          <label id="tiktok-field" hidden>Seu @ do TikTok
+            <input name="tiktok" placeholder="@seucanal" spellcheck="false" autocapitalize="off" maxlength="25">
+            <small class="hint">Depois da aprovação você configura a LivePix e os eventos da sua live aqui mesmo.</small>
+          </label>
+
+          <label>Recado para o admin <small class="hint">(opcional) Quem te convidou? De qual live você é?</small>
+            <textarea name="message" maxlength="280" rows="3"></textarea>
+          </label>
+          <label class="check"><input type="checkbox" name="rules"> <span>Li e aceito as <a href="./#regras">regras do servidor</a>.</span></label>
+        </div>
+
+        <button class="btn btn-block" type="submit" id="auth-submit">Entrar</button>
+        <p class="hint center">Sua senha é cifrada no seu aparelho antes de ser enviada.</p>
+      </form>
     </section>
 
-    <!-- Painel logado -->
+    <!-- Conta logada -->
     <section id="view-app" hidden>
-      <div class="cards">
+      <div id="account-state"></div>
+
+      <article class="card" id="servers-card" hidden>
+        <h2>Como entrar no servidor</h2>
+        <div id="servers" class="servers"></div>
+      </article>
+
+      <div class="cards" id="streamer-cards" hidden>
         <article class="card">
-          <h2>Perfil</h2>
+          <h2>Sua live</h2>
           <dl class="facts">
             <dt>TikTok</dt><dd id="me-tiktok"></dd>
+            <dt>Personagem</dt><dd id="me-player"></dd>
             <dt>Live</dt><dd id="me-live"></dd>
           </dl>
-          <form id="form-player" class="inline">
-            <label>Nick no Minecraft<input name="player" required pattern="\.?[A-Za-z0-9_]{3,16}"></label>
-            <button class="btn small" type="submit">Salvar nick</button>
-          </form>
-          <p class="hint">Jogadores Bedrock usam o ponto na frente, ex.: <code>.Steve</code>.</p>
+          <p class="hint">A live é acompanhada automaticamente enquanto você estiver dentro do jogo.</p>
         </article>
 
         <article class="card">
@@ -102,27 +121,22 @@
         </article>
       </div>
 
-      <article class="card" id="servers-card">
-        <h2>Endereço do servidor</h2>
-        <div id="servers" class="servers"></div>
-      </article>
-
       <article class="card" id="players-card" hidden>
         <div class="editor-head">
           <div>
-            <h2>Jogadores</h2>
-            <p class="hint">Quem você aprova entra na whitelist na hora e passa a ver o endereço no site.</p>
+            <h2>Contas</h2>
+            <p class="hint">Aprovar libera o nick no jogo na hora. Daqui você também define quem é streamer e quem é admin.</p>
           </div>
-          <div id="player-filter" class="seg" role="tablist" aria-label="Filtrar jogadores">
+          <div id="player-filter" class="seg" role="tablist" aria-label="Filtrar contas">
             <button type="button" role="tab" data-status="pending" aria-selected="true">Aguardando <span id="pending-count"></span></button>
-            <button type="button" role="tab" data-status="approved" aria-selected="false">Aprovados</button>
-            <button type="button" role="tab" data-status="rejected" aria-selected="false">Recusados</button>
+            <button type="button" role="tab" data-status="approved" aria-selected="false">Aprovadas</button>
+            <button type="button" role="tab" data-status="rejected" aria-selected="false">Recusadas</button>
           </div>
         </div>
         <div id="player-list" class="player-list"></div>
       </article>
 
-      <article class="card editor-card">
+      <article class="card editor-card" id="editor-card" hidden>
         <div class="editor-head">
           <div>
             <h2>Eventos por faixa de valor</h2>
@@ -153,7 +167,7 @@
     </section>
 
     <section id="view-offline" hidden>
-      <h1 class="pixel">Servidor offline</h1>
+      <h1>Servidor indisponível</h1>
       <p class="sub" id="offline-msg">Não foi possível falar com o servidor agora. Tente de novo mais tarde.</p>
       <button class="btn" type="button" onclick="location.reload()">Tentar de novo</button>
     </section>
