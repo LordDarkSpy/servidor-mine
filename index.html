@@ -126,6 +126,12 @@
     .rules div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 15px; }
     .rules b { display: block; margin-bottom: 2px; }
 
+    .cta {
+      display: inline-block; font-weight: 700; text-decoration: none; padding: 10px 18px; border-radius: 8px;
+      background: var(--grass); color: #fff; box-shadow: var(--shadow);
+    }
+    .cta:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
     footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
 
     @media (max-width: 600px) {
@@ -148,6 +154,7 @@
     </div>
     <h1 class="pixel">Sua live<br>controla o <span class="tt">caos</span>.</h1>
     <p class="lead">Um servidor survival onde PC, celular e console jogam juntos. Durante as lives, cada <strong>presente do TikTok</strong> e cada <strong>Pix</strong> vira um evento no mundo do streamer — de comida grátis até um Warden nas costas.</p>
+    <p style="margin:24px 0 0"><a class="cta" href="painel.html">Sou streamer → Painel</a></p>
   </div>
 </header>
 
@@ -245,7 +252,7 @@
         </div>
       </div>
 
-      <p class="legend">Itens com borda <span>tracejada</span> são sorteados: sai um deles.</p>
+      <p class="legend">Itens com borda <span>tracejada</span> são sorteados: sai um deles. Esta é a tabela padrão; cada streamer pode personalizar a dele.</p>
     </div>
   </section>
 
@@ -285,6 +292,38 @@
       select(next); next.focus();
     });
   });
+</script>
+<script type="module">
+  // Tabela ao vivo: usa as faixas padrão atuais do servidor. Se ele estiver offline, fica a tabela fixa acima.
+  import { Api } from "./assets/api.js";
+  import { rangeText, describeAction, TIER_COLORS } from "./assets/tiers.js";
+
+  const el = (tag, attrs = {}, ...kids) => {
+    const e = Object.assign(document.createElement(tag), attrs);
+    e.append(...kids.flat());
+    return e;
+  };
+
+  try {
+    const api = new Api(undefined, null);
+    const [tiers, catalog] = await Promise.all([api.publicTiers(), api.catalog()]);
+    for (const kind of ["gift", "pix"]) {
+      if (!tiers[kind]?.length) continue;
+      const cards = tiers[kind].map((tier, i) => {
+        const items = [];
+        if (tier.announce === "broadcast") items.push(el("li", { textContent: "Aviso para o servidor todo" }));
+        if (tier.sound && tier.sound !== "none") items.push(el("li", { textContent: "Som: " + (catalog.sounds.find(s => s.id === tier.sound)?.name ?? tier.sound) }));
+        const random = tier.mode === "random" && tier.actions.length > 1;
+        for (const action of tier.actions) items.push(el("li", { className: random ? "rand" : "", textContent: describeAction(action, catalog) }));
+        const card = el("div", { className: "tier" },
+          el("div", {}, el("div", { className: "name pixel", textContent: tier.label }), el("div", { className: "range", textContent: rangeText(kind, tier) })),
+          el("ul", {}, items));
+        card.style.setProperty("--c", TIER_COLORS[Math.min(i, 3)]);
+        return card;
+      });
+      document.getElementById(`panel-${kind}`).replaceChildren(...cards);
+    }
+  } catch { /* servidor offline: mantém a tabela estática */ }
 </script>
 </body>
 </html>

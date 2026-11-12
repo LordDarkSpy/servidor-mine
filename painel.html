@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel do Streamer</title>
+  <meta name="description" content="Painel dos streamers: cadastro, conta LivePix e configuração dos eventos de presentes e Pix.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#14181f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/painel.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <a class="brand pixel" href="./">← Servidor</a>
+      <div id="who" class="who" hidden>
+        <span id="who-name"></span>
+        <button id="logout" class="btn ghost small" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="flash" class="flash" role="status" aria-live="polite" hidden></div>
+
+    <!-- Entrar / cadastrar -->
+    <section id="view-auth" hidden>
+      <h1 class="pixel">Painel do streamer</h1>
+      <p class="sub">Configure sua conta Pix e os eventos da sua live. Senhas e chaves são <strong>cifradas no seu navegador</strong> antes de sair daqui: só o servidor consegue ler.</p>
+
+      <div class="auth-grid">
+        <form id="form-login" class="card" autocomplete="on">
+          <h2>Entrar</h2>
+          <label>Seu @ do TikTok<input name="tiktok" required autocomplete="username" placeholder="@seucanal"></label>
+          <label>Senha<input name="password" type="password" required autocomplete="current-password" minlength="8"></label>
+          <button class="btn" type="submit">Entrar</button>
+        </form>
+
+        <form id="form-register" class="card" autocomplete="off">
+          <h2>Primeiro acesso</h2>
+          <p class="hint">Peça um código de convite ao dono do servidor.</p>
+          <label>Código de convite<input name="invite" required placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" spellcheck="false"></label>
+          <label>Seu nick no Minecraft<input name="player" required placeholder="Steve ou .Steve (Bedrock)" pattern="\.?[A-Za-z0-9_]{3,16}"></label>
+          <label>Crie uma senha<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+          <label>Repita a senha<input name="password2" type="password" required minlength="8" autocomplete="new-password"></label>
+          <button class="btn" type="submit">Criar conta</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Painel logado -->
+    <section id="view-app" hidden>
+      <div class="cards">
+        <article class="card">
+          <h2>Perfil</h2>
+          <dl class="facts">
+            <dt>TikTok</dt><dd id="me-tiktok"></dd>
+            <dt>Live</dt><dd id="me-live"></dd>
+          </dl>
+          <form id="form-player" class="inline">
+            <label>Nick no Minecraft<input name="player" required pattern="\.?[A-Za-z0-9_]{3,16}"></label>
+            <button class="btn small" type="submit">Salvar nick</button>
+          </form>
+          <p class="hint">Jogadores Bedrock usam o ponto na frente, ex.: <code>.Steve</code>.</p>
+        </article>
+
+        <article class="card">
+          <h2>Pix (LivePix)</h2>
+          <p id="pix-status" class="status"></p>
+          <form id="form-livepix" autocomplete="off">
+            <label>Client ID<input name="client_id" required spellcheck="false"></label>
+            <label>Client Secret<input name="client_secret" type="password" required spellcheck="false"></label>
+            <div class="row">
+              <button class="btn small" type="submit">Conectar LivePix</button>
+              <button id="pix-remove" class="btn ghost small" type="button">Desconectar</button>
+            </div>
+          </form>
+          <details class="hint">
+            <summary>Como gerar as credenciais</summary>
+            <ol>
+              <li>Em livepix.gg, abra <strong>Configurações → Aplicações</strong> e crie um app.</li>
+              <li>Marque o escopo <code>messages:read</code>.</li>
+              <li>Copie o Client ID e o Client Secret para cá.</li>
+            </ol>
+            Só doações feitas depois de conectar geram eventos.
+          </details>
+        </article>
+      </div>
+
+      <article class="card editor-card">
+        <div class="editor-head">
+          <div>
+            <h2>Eventos por faixa de valor</h2>
+            <p id="rules-mode" class="hint"></p>
+          </div>
+          <div id="scope" class="seg" role="radiogroup" aria-label="O que editar" hidden>
+            <button type="button" role="radio" data-scope="mine" aria-checked="true">Minhas faixas</button>
+            <button type="button" role="radio" data-scope="default" aria-checked="false">Padrão do servidor</button>
+          </div>
+        </div>
+
+        <div class="seg kind" role="tablist" aria-label="Tipo de doação">
+          <button type="button" role="tab" data-kind="gift" aria-selected="true">Presentes TikTok (💎)</button>
+          <button type="button" role="tab" data-kind="pix" aria-selected="false">Pix (R$)</button>
+        </div>
+
+        <div id="tiers" class="tiers"></div>
+        <button id="add-tier" class="btn ghost" type="button">+ Adicionar faixa</button>
+
+        <div id="errors" class="errors" role="alert" hidden></div>
+
+        <div class="savebar">
+          <button id="save" class="btn" type="button">Salvar eventos</button>
+          <button id="discard" class="btn ghost" type="button">Descartar mudanças</button>
+          <button id="reset" class="btn ghost danger" type="button">Voltar ao padrão do servidor</button>
+        </div>
+      </article>
+    </section>
+
+    <section id="view-offline" hidden>
+      <h1 class="pixel">Servidor offline</h1>
+      <p class="sub" id="offline-msg">Não foi possível falar com o servidor agora. Tente de novo mais tarde.</p>
+      <button class="btn" type="button" onclick="location.reload()">Tentar de novo</button>
+    </section>
+  </main>
+
+  <script type="module" src="assets/painel.js"></script>
+</body>
+</html>
