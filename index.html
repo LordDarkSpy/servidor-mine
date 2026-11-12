@@ -87,6 +87,24 @@
     }
     .note { margin-top: 16px; font-size: 14px; color: var(--muted); }
 
+    /* endereço com botão de copiar */
+    .addr {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 8px 8px 12px; margin-bottom: 10px;
+    }
+    .addr-label { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .addr code { background: none; border: 0; padding: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .copy {
+      font: 600 14px Inter, system-ui, sans-serif; color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; cursor: pointer; min-width: 84px;
+    }
+    .copy:hover { border-color: var(--grass); }
+    .copy:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
+    .copy.done { color: var(--grass); border-color: var(--grass); }
+    .card .addr + ol { margin-top: 14px; }
+    .tips { margin: 0; padding-left: 18px; } .tips li { margin: 6px 0; font-size: 15px; }
+
     /* fluxo */
     .flow { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); counter-reset: step; }
     .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; }
@@ -167,26 +185,46 @@
         <article class="card">
           <h3><span class="icon" style="background:color-mix(in srgb,var(--grass) 18%,transparent);color:var(--grass)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>Java (PC)</h3>
+          <div class="addr">
+            <span class="addr-label">Endereço</span>
+            <code>impairment-joaquin.tun.ply.gg</code>
+            <button type="button" class="copy" data-copy="impairment-joaquin.tun.ply.gg">Copiar</button>
+          </div>
           <ol>
             <li>Abra o Minecraft Java na versão <strong>26.3</strong>.</li>
             <li><span class="kbd">Multijogador</span> → <span class="kbd">Adicionar servidor</span>.</li>
-            <li>Cole o endereço do servidor e entre.</li>
+            <li>Cole o endereço acima (não precisa de porta) e entre.</li>
           </ol>
         </article>
         <article class="card">
           <h3><span class="icon" style="background:color-mix(in srgb,var(--pix) 18%,transparent);color:var(--pix)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Bedrock (celular, console, Win10/11)</h3>
+          <div class="addr">
+            <span class="addr-label">Endereço</span>
+            <code>impairment-radiated.tun.ply.gg</code>
+            <button type="button" class="copy" data-copy="impairment-radiated.tun.ply.gg">Copiar</button>
+          </div>
+          <div class="addr">
+            <span class="addr-label">Porta</span>
+            <code>40852</code>
+            <button type="button" class="copy" data-copy="40852">Copiar</button>
+          </div>
           <ol>
             <li>Atualize o Minecraft para a versão mais recente.</li>
-            <li><span class="kbd">Jogar</span> → <span class="kbd">Servidores</span> → <span class="kbd">Adicionar servidor</span>.</li>
-            <li>Cole o endereço e use a porta <code>19132</code>.</li>
+            <li><span class="kbd">Jogar</span> → <span class="kbd">Servidores</span> → role até o fim → <span class="kbd">Adicionar servidor</span>.</li>
+            <li>Cole o endereço e a porta acima em campos separados.</li>
           </ol>
           <p class="note">No jogo, nicks do Bedrock aparecem com um ponto na frente, por exemplo <code>.Steve</code>.</p>
         </article>
         <article class="card">
           <h3><span class="icon" style="background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>Endereço do servidor</h3>
-          <p style="margin:0">O endereço é enviado só para os participantes. Peça para o dono do servidor ou no grupo da comunidade.</p>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg></span>Não conseguiu entrar?</h3>
+          <ul class="tips">
+            <li><b>Java:</b> confira se está na versão <strong>26.3</strong>. Snapshots não entram.</li>
+            <li><b>Bedrock:</b> a porta é <code>40852</code>, não a padrão 19132.</li>
+            <li><b>Console:</b> Xbox, PlayStation e Switch não deixam adicionar servidores direto; use um app como o <em>BedrockTogether</em> no celular na mesma rede.</li>
+            <li>Se o servidor não aparecer, ele pode estar desligado. Pergunte no grupo.</li>
+          </ul>
         </article>
       </div>
     </div>
@@ -290,6 +328,22 @@
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
       select(next); next.focus();
+    });
+  });
+</script>
+<script>
+  // Botões "Copiar" dos endereços (com alternativa para navegadores sem a API de área de transferência)
+  document.querySelectorAll(".copy").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const value = btn.dataset.copy;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        const tmp = Object.assign(document.createElement("textarea"), { value });
+        document.body.append(tmp); tmp.select(); document.execCommand("copy"); tmp.remove();
+      }
+      btn.textContent = "Copiado!"; btn.classList.add("done");
+      setTimeout(() => { btn.textContent = "Copiar"; btn.classList.remove("done"); }, 1600);
     });
   });
 </script>
