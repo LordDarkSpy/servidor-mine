@@ -238,7 +238,9 @@ footer { border-top: 1px solid var(--border); padding: 32px 0 48px; color: var(-
 }
 
 /* vitrine de eventos */
-.showcase { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.showcase { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .showcase { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .showcase { grid-template-columns: 1fr; } }
 .show-card { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
 .show-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c); }
 .show-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; margin-bottom: 14px;
