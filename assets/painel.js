@@ -357,6 +357,15 @@ function itemName(id) {
   return known || key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
+// Ícone do item (texturas do jogo servidas pela API); sem ícone, mostra a inicial
+function itemIcon(id) {
+  const key = id.replace(/^minecraft:/, "");
+  const img = h("img", { class: "item-icon", alt: "", loading: "lazy", width: 32, height: 32,
+    src: `${api.base}/api/item-icon/${encodeURIComponent(key)}` });
+  img.addEventListener("error", () => img.replaceWith(h("span", { class: "item-icon none", "aria-hidden": "true" }, key[0].toUpperCase())), { once: true });
+  return img;
+}
+
 function enchantText(details) {
   return (details || "").split(", ").filter(Boolean).map((part) => {
     const [id, lvl] = part.split(" ");
@@ -380,7 +389,7 @@ function renderBank() {
     const box = h("input", { type: "checkbox", checked: bankState.selected.has(it.id),
       "aria-label": `Selecionar ${it.name || itemName(it.item)}`,
       onchange: (e) => { e.target.checked ? bankState.selected.add(it.id) : bankState.selected.delete(it.id); updateBankButtons(); } });
-    return h("label", { class: "bank-item" + (it.status === "withdraw" ? " pending" : "") }, box,
+    return h("label", { class: "bank-item" + (it.status === "withdraw" ? " pending" : "") }, box, itemIcon(it.item),
       h("span", { class: "bank-info" },
         h("b", {}, it.name ? `“${it.name}”` : itemName(it.item)),
         h("span", { class: "bank-meta" }, [it.name ? itemName(it.item) : null, enchantText(it.details) || null].filter(Boolean).join(" · "))),
@@ -393,7 +402,7 @@ function renderBank() {
 
   $("#bank-history-box").hidden = !d.history.length;
   $("#bank-history").replaceChildren(...d.history.map((e) => h("li", {},
-    `${e.action === "deposito" ? "⬇ Guardou" : "⬆ Retirou"} ${e.count}× ${e.name ? `“${e.name}”` : itemName(e.item)} · ${dateBR(e.at)}`)));
+    itemIcon(e.item), ` ${e.action === "deposito" ? "Guardou" : "Retirou"} ${e.count}× ${e.name ? `“${e.name}”` : itemName(e.item)} · ${dateBR(e.at)}`)));
 
   clearInterval(bankState.timer);   // com retirada pendente, acompanha a entrega
   if (pending) bankState.timer = setInterval(() => loadBank().catch(() => {}), 10000);
