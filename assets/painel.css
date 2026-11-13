@@ -69,7 +69,10 @@ input:user-invalid { border-color: var(--danger); }
 .status { margin: 0 0 12px; font-weight: 600; }
 .status.ok { color: var(--ok); } .status.warn { color: var(--warn); } .status.off { color: var(--muted); }
 
-.flash { margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-weight: 600; }
+/* aviso flutuante: aparece no rodapé da tela sem rolar a página */
+.flash { position: fixed; z-index: 50; left: 50%; bottom: 20px; transform: translateX(-50%); width: max-content; max-width: min(640px, calc(100vw - 32px));
+  padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-weight: 600;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .28); overflow-wrap: anywhere; cursor: pointer; }
 .flash.ok { border-color: var(--ok); color: var(--ok); }
 .flash.err { border-color: var(--danger); color: var(--danger); }
 
@@ -213,10 +216,7 @@ textarea { resize: vertical; min-height: 70px; }
 #dev-card { margin-bottom: 16px; border-color: color-mix(in srgb, #0ea5e9 45%, var(--border)); }
 .badge.dev { color: #fff; background: #0284c7; border-color: #0284c7; }
 .badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, var(--border)); }
-.dev-grid { display: grid; gap: 14px; margin-top: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.dev-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; min-width: 0; }
-.dev-box h3 { margin: 0 0 10px; font-size: 15px; }
-.dev-wide { grid-column: 1 / -1; }
+.dev-grid { display: grid; gap: 10px; margin-top: 14px; }
 .dev-line { margin: 0 0 10px; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
 .dev-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 .dev-form label { margin: 0; flex: 1 1 120px; min-width: 0; }
@@ -228,7 +228,7 @@ textarea { resize: vertical; min-height: 70px; }
 #dev-zones { margin: 10px 0 12px; }
 .dev-output { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #0b1020; color: #d1fae5;
   font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; }
-@media (max-width: 900px) { .dev-grid { grid-template-columns: 1fr; } .dev-rows { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .dev-rows { grid-template-columns: 1fr; } }
 
 /* banco de itens como inventário (visual do baú do jogo) */
 .bank-list { display: block; max-height: none; overflow: visible; }

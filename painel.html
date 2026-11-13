@@ -128,18 +128,18 @@
         </div>
         <p class="hint">Controle do servidor. Tudo o que você faz aqui fica registrado no log com o seu nick.</p>
         <div class="dev-grid">
-          <section class="dev-box">
-            <h3>Servidor</h3>
+          <details class="tier dev-box" data-fold="server" style="--c: #0ea5e9">
+            <summary><span class="tier-sum"><span class="tier-title">Servidor</span><span class="tier-meta">Ligar, reiniciar e encerrar</span></span></summary>
             <p id="dev-server" class="dev-line"></p>
             <div class="row">
               <button class="btn small" type="button" data-power="start">Iniciar</button>
               <button class="btn ghost small" type="button" data-power="restart">Reiniciar</button>
               <button class="btn ghost small danger" type="button" data-power="stop">Encerrar</button>
             </div>
-          </section>
+          </details>
 
-          <section class="dev-box">
-            <h3>Mundo</h3>
+          <details class="tier dev-box" data-fold="world" style="--c: #f59e0b">
+            <summary><span class="tier-sum"><span class="tier-title">Mundo</span><span class="tier-meta">Dia, noite e clima</span></span></summary>
             <div class="row">
               <button class="btn ghost small" type="button" data-act="day">☀️ Dia</button>
               <button class="btn ghost small" type="button" data-act="night">🌙 Noite</button>
@@ -147,19 +147,19 @@
               <button class="btn ghost small" type="button" data-act="rain">🌧️ Chuva</button>
               <button class="btn ghost small" type="button" data-act="thunder">⛈️ Tempestade</button>
             </div>
-          </section>
+          </details>
 
-          <section class="dev-box">
-            <h3>Mensagem</h3>
+          <details class="tier dev-box" data-fold="msg" style="--c: #a855f7">
+            <summary><span class="tier-sum"><span class="tier-title">Mensagem</span><span class="tier-meta">Aviso no chat ou mensagem privada</span></span></summary>
             <form id="dev-msg" class="dev-form">
               <label>Para<select name="to"><option value="">Todos (aviso no chat)</option></select></label>
               <label class="wide">Texto<input name="text" maxlength="240" required></label>
               <button class="btn small" type="submit">Enviar</button>
             </form>
-          </section>
+          </details>
 
-          <section class="dev-box dev-wide">
-            <h3>Jogador</h3>
+          <details class="tier dev-box" data-fold="player" style="--c: #22c55e">
+            <summary><span class="tier-sum"><span class="tier-title">Jogador</span><span class="tier-meta">Spawn, curar, expulsar, give, mobs, modo de jogo e teleporte</span></span></summary>
             <div class="dev-form">
               <label>Jogador online<select id="dev-player"></select></label>
               <div class="row dev-actions">
@@ -193,11 +193,11 @@
             </div>
             <datalist id="dev-items"></datalist>
             <datalist id="dev-mobs"></datalist>
-          </section>
+          </details>
 
-          <section class="dev-box dev-wide">
-            <h3>Zonas protegidas</h3>
-            <p class="hint">Ninguém quebra nem constrói no quadrado de "raio" blocos em volta do ponto (na altura toda). Explosões, fogo, pistões e o buraco dos eventos também não afetam.</p>
+          <details class="tier dev-box" data-fold="zones" style="--c: #ef4444">
+            <summary><span class="tier-sum"><span class="tier-title">Zonas protegidas</span><span class="tier-meta" id="dev-zone-count">Áreas onde ninguém quebra nem constrói</span></span></summary>
+            <p class="hint">Ninguém quebra nem constrói no quadrado de "raio" blocos em volta do ponto (na altura toda). Explosões, fogo, pistões e o buraco dos eventos também não afetam. Vale até para admin/DEV: só no <b>modo criativo</b> quem tem permissão consegue construir lá.</p>
             <div id="dev-zones" class="player-list"></div>
             <form id="dev-zone" class="dev-form">
               <label>Nome<input name="zname" maxlength="40" placeholder="Spawn" required></label>
@@ -209,16 +209,16 @@
               <button class="btn ghost small" type="button" id="dev-here">Usar a posição do jogador</button>
               <button class="btn small" type="submit">Proteger</button>
             </form>
-          </section>
+          </details>
 
-          <section class="dev-box dev-wide">
-            <h3>Console</h3>
+          <details class="tier dev-box" data-fold="console" style="--c: #64748b">
+            <summary><span class="tier-sum"><span class="tier-title">Console</span><span class="tier-meta">Qualquer comando do servidor</span></span></summary>
             <form id="dev-console" class="dev-form">
               <label class="wide">Comando<input name="command" maxlength="300" placeholder="list" required spellcheck="false" autocapitalize="off"></label>
               <button class="btn small" type="submit">Executar</button>
             </form>
             <pre id="dev-output" class="dev-output" hidden></pre>
-          </section>
+          </details>
         </div>
       </article>
 

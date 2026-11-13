@@ -37,8 +37,8 @@ function flash(message, ok = true) {
   el.hidden = false;
   clearTimeout(flash.timer);
   flash.timer = setTimeout(() => (el.hidden = true), 7000);
-  el.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
+$("#flash").addEventListener("click", (ev) => (ev.currentTarget.hidden = true));
 
 async function busy(button, fn) {
   if (button) button.disabled = true;
@@ -549,6 +549,9 @@ function renderDev() {
           + (z.created_by ? ` · por ${z.created_by}` : ""))),
       del);
   }) : [h("p", { class: "hint" }, "Nenhuma zona protegida.")]));
+  $("#dev-zone-count").textContent = d.zones.length
+    ? `${d.zones.length} zona(s) protegida(s): ${d.zones.map((z) => z.name).join(", ")}`
+    : "Áreas onde ninguém quebra nem constrói";
 
   clearInterval(devState.timer);
   devState.timer = setInterval(() => { if (!$("#dev-card").hidden) loadDev().catch(() => {}); }, d.busy || !up ? 4000 : 15000);
@@ -569,6 +572,13 @@ function devPlayer() {
   if (!p) throw new Error("Escolha um jogador online.");
   return p;
 }
+
+// lembra quais seções do painel DEV ficam abertas (só neste navegador)
+document.querySelectorAll("#dev-card details[data-fold]").forEach((d) => {
+  const key = "dev-fold-" + d.dataset.fold;
+  try { d.open = localStorage.getItem(key) === "1"; } catch {}
+  d.addEventListener("toggle", () => { try { localStorage.setItem(key, d.open ? "1" : "0"); } catch {} });
+});
 
 const POWER_TEXT = { start: "Ligando o servidor…", restart: "Reiniciando: aviso no chat e volta em ~1 min.", stop: "Desligando: aviso no chat e salva o mundo." };
 document.querySelectorAll("[data-power]").forEach((b) => b.addEventListener("click", () => {
