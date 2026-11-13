@@ -272,3 +272,27 @@ section.dev-box { background: var(--bg); border: 1px solid var(--border); border
 .pick-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
 .pick-name small { color: var(--muted); font-weight: 500; }
 .pick-row input { width: 90px; flex: none; }
+
+/* "Dar item" em passos e encantamentos (give do DEV e eventos) */
+.gear-fields { display: contents; }
+.gear-ench { grid-column: 1 / -1; min-width: 0; }
+.gear-ench:empty { display: none; }
+.ench { border-top: 1px dashed var(--border); padding-top: 10px; min-width: 0; }
+.ench-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; cursor: pointer; }
+.ench-toggle input { width: 18px; height: 18px; margin: 0; accent-color: #a855f7; }
+.ench-sum { flex: 1 1 160px; font-size: 13px; font-weight: 500; color: var(--muted); overflow-wrap: anywhere; }
+.ench-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
+.ench-grid { display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.ench-row { display: flex; align-items: center; gap: 8px; margin: 0; padding: 5px 6px 5px 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.ench-row input[type=checkbox] { width: 16px; height: 16px; margin: 0; flex: none; accent-color: #a855f7; }
+.ench-name { flex: 1; min-width: 0; display: grid; }
+.ench-name small { font-size: 11px; color: var(--muted); font-weight: 400; }
+.ench-row select { width: auto; min-width: 56px; padding: 3px 6px; flex: none; }
+.ench-one { flex: none; min-width: 56px; text-align: center; color: var(--muted); }
+.ench-row.on { border-color: #a855f7; background: color-mix(in srgb, #a855f7 12%, var(--bg)); font-weight: 600; }
+.ench-row.off { opacity: .55; cursor: not-allowed; }
+.dev-ench { flex: 1 1 100%; min-width: 0; }
+.dev-ench:empty, .dev-ench .gear-ench:empty { display: none; }
+.dev-rows #dev-give { grid-column: 1 / -1; }
+#dev-give .gear-fields > label { margin: 0; flex: 1 1 140px; min-width: 0; }

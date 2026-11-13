@@ -361,7 +361,7 @@ const bankState = { data: null, selected: new Set(), qty: new Map(), timer: null
 
 function itemName(id) {
   const key = id.replace(/^minecraft:/, "");
-  const known = state.catalog?.items?.find((i) => i.id === key)?.name;
+  const known = state.catalog?.items?.find((i) => i.id === key)?.name || (state.catalog && gearName(key));
   return known || key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
@@ -507,6 +507,173 @@ for (const [button, action] of [["#bank-withdraw", "withdraw"], ["#bank-cancel",
   }).then(updateBankButtons));
 }
 
+// ---------------------------------------------------------------- equipamentos e encantamentos
+
+const ROMAN = ["", "I", "II", "III", "IV", "V"];
+const normItem = (item) => String(item || "").trim().toLowerCase().replace(/^minecraft:/, "");
+
+/** Tipo de equipamento do item ("pickaxe", "boots"…), ou null se não dá para encantar. */
+function itemKind(item) {
+  item = normItem(item);
+  for (const [key, kind] of state.catalog.item_kinds)
+    if (item === key || (key.startsWith("_") && item.endsWith(key))) return kind;
+  return null;
+}
+
+/** "netherite_pickaxe" -> { type: "pickaxe", material: "netherite" }; null se não é equipamento. */
+function splitGear(item) {
+  item = normItem(item);
+  for (const g of state.catalog.equipment) {
+    if (!g.materials.length) { if (item === g.id) return { type: g.id, material: null }; continue; }
+    const m = g.materials.find((m) => item === `${m.id}_${g.id}`);
+    if (m) return { type: g.id, material: m.id };
+  }
+  return null;
+}
+
+const gearId = (type, material) => (material ? `${material}_${type}` : type);
+
+function gearName(item) {
+  const gear = splitGear(item);
+  if (!gear) return null;
+  const g = state.catalog.equipment.find((x) => x.id === gear.type);
+  if (!gear.material) return g.name;
+  if (gear.material === "turtle") return "Casco de tartaruga";
+  return `${g.name} de ${g.materials.find((m) => m.id === gear.material).name.toLowerCase()}`;
+}
+
+const enchantName = (id) => state.catalog.enchantments.find((e) => e.id === id)?.name ?? id;
+
+/** Encantamento já escolhido que impede este (Fortuna × Toque suave etc.). */
+function enchantBlocker(id, chosen) {
+  for (const group of state.catalog.enchant_conflicts)
+    if (group.includes(id)) {
+      const other = group.find((e) => e !== id && chosen[e]);
+      if (other) return other;
+    }
+  return null;
+}
+
+/** Só o que serve para o item, sem conflitos e dentro do nível máximo. */
+function fitEnchants(item, chosen) {
+  const kind = itemKind(item);
+  const out = {};
+  for (const e of state.catalog.enchantments)
+    if (kind && e.kinds.includes(kind) && chosen?.[e.id] && !enchantBlocker(e.id, out)) out[e.id] = Math.min(chosen[e.id], e.max);
+  return out;
+}
+
+const enchantSummary = (chosen) => Object.entries(chosen).map(([id, lv]) => `${enchantName(id)} ${ROMAN[lv] || lv}`).join(", ");
+
+/**
+ * "Encantar?" e, marcado, a lista dos encantamentos que servem no item: caixa para marcar e nível.
+ * onchange recebe o novo {id: nível} (vazio = sem encantamento). Devolve null se o item não é encantável.
+ */
+function enchantPicker(item, initial, onchange) {
+  const kind = itemKind(item);
+  const list = kind ? state.catalog.enchantments.filter((e) => e.kinds.includes(kind)) : [];
+  if (!list.length) return null;
+  let chosen = fitEnchants(item, initial);
+  let enabled = Object.keys(chosen).length > 0;
+  const box = h("div", { class: "ench" });
+  const set = (next) => { chosen = next; draw(); onchange({ ...chosen }); };
+  const draw = () => {
+    const toggle = h("label", { class: "ench-toggle" },
+      h("input", { type: "checkbox", checked: enabled, onchange: (ev) => {
+        enabled = ev.target.checked;
+        if (enabled) draw(); else set({});
+      } }),
+      h("b", {}, "✨ Encantar"),
+      h("span", { class: "ench-sum" }, enabled ? (Object.keys(chosen).length ? enchantSummary(chosen) : "marque os encantamentos abaixo") : ""));
+    if (!enabled) return box.replaceChildren(toggle);
+    const rows = list.map((e) => {
+      const blocker = enchantBlocker(e.id, chosen);
+      const level = h("select", {
+        disabled: !chosen[e.id], "aria-label": `Nível de ${e.name}`,
+        onchange: (ev) => set({ ...chosen, [e.id]: Number(ev.target.value) }),
+      }, Array.from({ length: e.max }, (_, i) =>
+        h("option", { value: String(i + 1), selected: (chosen[e.id] || e.max) === i + 1 }, ROMAN[i + 1] || String(i + 1))));
+      const check = h("input", { type: "checkbox", checked: !!chosen[e.id], disabled: !!blocker, onchange: (ev) => {
+        const next = { ...chosen };
+        if (ev.target.checked) next[e.id] = e.max; else delete next[e.id];
+        set(next);
+      } });
+      return h("label", { class: "ench-row" + (chosen[e.id] ? " on" : "") + (blocker ? " off" : ""),
+        title: blocker ? `Não combina com ${enchantName(blocker)}` : null },
+        check, h("span", { class: "ench-name" }, e.name, blocker ? h("small", {}, `não junta com ${enchantName(blocker)}`) : null),
+        e.max > 1 ? level : h("span", { class: "ench-one" }, "I"));
+    });
+    const best = () => {
+      const next = { ...chosen };
+      for (const e of list) if (!enchantBlocker(e.id, next)) next[e.id] = e.max;
+      set(next);
+    };
+    box.replaceChildren(toggle,
+      h("div", { class: "ench-tools" },
+        h("button", { type: "button", class: "btn ghost small", onclick: best }, "Marcar tudo no máximo"),
+        h("button", { type: "button", class: "btn ghost small", onclick: () => set({}) }, "Desmarcar tudo")),
+      h("div", { class: "ench-grid" }, rows));
+  };
+  draw();
+  return box;
+}
+
+/**
+ * Escolha do item em passos: "Dar" (item comum ou tipo de equipamento) -> material -> encantar.
+ * common: lista de itens comuns para um select (eventos) ou null para digitar qualquer id (DEV).
+ * onchange(item, enchantments, itemChanged). Devolve { fields, picker } para encaixar no formulário.
+ */
+function gearChooser({ item, enchantments, common, onchange }) {
+  const fields = h("div", { class: "gear-fields" });
+  const picker = h("div", { class: "gear-ench" });
+  const gear = splitGear(item);
+  const s = { type: gear?.type ?? "", material: gear?.material ?? null, common: gear ? "" : normItem(item), enchants: enchantments || {} };
+  const current = () => (s.type ? gearId(s.type, s.material) : s.common);
+  const changed = (itemChanged) => {
+    s.enchants = fitEnchants(current(), s.enchants);
+    if (itemChanged) draw();
+    onchange(current(), { ...s.enchants }, itemChanged);
+  };
+  const draw = () => {
+    const c = state.catalog;
+    const typeSel = h("select", { onchange: (ev) => {
+      s.type = ev.target.value;
+      const g = c.equipment.find((x) => x.id === s.type);
+      s.material = g?.materials.length ? (g.materials.find((m) => m.id === s.material) ?? g.materials.at(-1)).id : null;
+      if (!s.type && common && !common.some((i) => i.id === s.common)) s.common = common[0].id;
+      changed(true);
+    } },
+      h("option", { value: "", selected: !s.type }, common ? "Item comum" : "Qualquer item (digitar)"),
+      h("optgroup", { label: "Equipamentos" }, c.equipment.map((g) => h("option", { value: g.id, selected: g.id === s.type }, g.name))));
+    const parts = [h("label", {}, "Dar", typeSel)];
+    if (!s.type && common) {
+      parts.push(h("label", { class: "wide" }, "Item", h("select", { onchange: (ev) => { s.common = ev.target.value; changed(true); } },
+        common.map((i) => h("option", { value: i.id, selected: i.id === s.common }, `${i.name} (máx. ${i.max})`)))));
+    } else if (!s.type) {
+      parts.push(h("label", { class: "wide" }, "Item", h("input", { value: s.common, list: "dev-items", placeholder: "diamond", required: true,
+        spellcheck: "false", autocapitalize: "off", oninput: (ev) => {
+          const before = itemKind(s.common);
+          s.common = normItem(ev.target.value);
+          if (itemKind(s.common) !== before) { s.enchants = fitEnchants(s.common, s.enchants); drawPicker(); }
+          onchange(current(), { ...s.enchants }, false);
+        } })));
+    } else {
+      const g = c.equipment.find((x) => x.id === s.type);
+      if (g.materials.length)
+        parts.push(h("label", {}, "Material", h("select", { onchange: (ev) => { s.material = ev.target.value; changed(true); } },
+          g.materials.map((m) => h("option", { value: m.id, selected: m.id === s.material }, m.name)))));
+    }
+    fields.replaceChildren(...parts);
+    drawPicker();
+  };
+  const drawPicker = () => {
+    const p = enchantPicker(current(), s.enchants, (next) => { s.enchants = next; onchange(current(), { ...next }, false); });
+    picker.replaceChildren(...(p ? [p] : []));
+  };
+  draw();
+  return { fields, picker };
+}
+
 // ---------------------------------------------------------------- painel DEV
 
 const devState = { data: null, timer: null };
@@ -521,6 +688,7 @@ function fillSelect(select, names, first) {
 }
 
 function renderDev() {
+  initDevGive();
   const d = devState.data;
   const label = CONTAINER_TEXT[d.container] || d.container;
   const up = d.container === "healthy";
@@ -601,13 +769,29 @@ document.querySelectorAll("[data-pact]").forEach((b) => b.addEventListener("clic
   flash(r.response || "Feito.");
 })));
 
-for (const [id, action, fields] of [["#dev-give", "give", ["item", "count"]], ["#dev-summon", "summon", ["mob", "count"]],
+// give do DEV em passos: o que dar -> material -> encantar (criado depois que o catálogo carrega)
+const devGive = { item: "", enchants: {}, ready: false };
+function initDevGive() {
+  if (devGive.ready) return;
+  devGive.ready = true;
+  const { fields, picker } = gearChooser({ item: "", enchantments: {}, common: null,
+    onchange: (item, enchants) => { devGive.item = item; devGive.enchants = enchants; } });
+  $("#dev-give-fields").replaceChildren(fields);
+  $("#dev-ench").replaceChildren(picker);
+}
+
+for (const [id, action, fields] of [["#dev-give", "give", ["count"]], ["#dev-summon", "summon", ["mob", "count"]],
   ["#dev-gamemode", "gamemode", ["mode"]], ["#dev-tp", "tp", ["dest"]]]) {
   $(id).addEventListener("submit", (ev) => {
     ev.preventDefault();
     busy(ev.submitter, async () => {
       const body = { action, player: devPlayer() };
       for (const f of fields) body[f === "dest" ? "target" : f] = ev.target[f].value;
+      if (action === "give") {
+        if (!devGive.item) throw new Error("Escolha o item.");
+        body.item = devGive.item;
+        if (Object.keys(devGive.enchants).length) body.enchantments = devGive.enchants;
+      }
       const r = await api.devAction(body);
       flash(r.response || "Feito.");
     });
@@ -708,7 +892,7 @@ function select(label, options, value, onchange) {
       options.map((o) => h("option", { value: o.id, selected: o.id === value }, o.name))));
 }
 
-function actionParams(action) {
+function actionParams(action, gear) {
   const c = state.catalog;
   const limitOf = (list, id) => c[list].find((x) => x.id === id)?.max ?? 1;
   switch (action.type) {
@@ -719,13 +903,13 @@ function actionParams(action) {
         }, c.mobs.map((m) => h("option", { value: m.id, selected: m.id === action.mob }, `${m.name} (máx. ${m.max})`)))),
         numberInput("Qtd.", action.amount, { max: limitOf("mobs", action.mob), onchange: (v) => (action.amount = v) }),
       ];
-    case "give_item":
+    case "give_item": {
+      const max = splitGear(action.item) ? c.equipment_max : limitOf("items", action.item);
       return [
-        h("label", { class: "wide" }, "Item", h("select", {
-          onchange: (e) => { action.item = e.target.value; action.amount = Math.min(action.amount, limitOf("items", action.item)); renderEditor(); markDirty(); },
-        }, c.items.map((i) => h("option", { value: i.id, selected: i.id === action.item }, `${i.name} (máx. ${i.max})`)))),
-        numberInput("Qtd.", action.amount, { max: limitOf("items", action.item), onchange: (v) => (action.amount = v) }),
+        gear.fields,
+        max > 1 ? numberInput("Qtd.", action.amount, { max, onchange: (v) => (action.amount = v) }) : null,
       ];
+    }
     case "effect":
       return [
         h("label", { class: "wide" }, "Efeito", h("select", { onchange: (e) => { action.effect = e.target.value; markDirty(); } },
@@ -748,13 +932,27 @@ function actionParams(action) {
 
 function renderAction(tier, action, index) {
   const remove = () => { tier.actions.splice(index, 1); renderEditor(); markDirty(); };
+  const gear = action.type === "give_item" && gearChooser({
+    item: action.item, enchantments: action.enchantments, common: state.catalog.items,
+    onchange: (item, enchants, itemChanged) => {
+      action.item = item;
+      if (Object.keys(enchants).length) action.enchantments = enchants; else delete action.enchantments;
+      if (itemChanged) {
+        const max = splitGear(item) ? state.catalog.equipment_max : state.catalog.items.find((i) => i.id === item)?.max ?? 1;
+        action.amount = Math.min(action.amount ?? 1, max);
+        renderEditor();
+      }
+      markDirty();
+    },
+  });
   return h("div", { class: "action" },
     select("Ação", state.catalog.actions, action.type, (v) => { tier.actions[index] = newAction(v); renderEditor(); }),
-    h("div", { class: "params" }, actionParams(action)),
+    h("div", { class: "params" }, actionParams(action, gear)),
     tier.mode === "random"
       ? numberInput("Chance", action.weight ?? 1, { max: state.catalog.limits.weight_max, cls: "weight", onchange: (v) => (action.weight = v) })
       : h("span"),
-    h("button", { class: "btn ghost icon", type: "button", title: "Remover ação", "aria-label": "Remover ação", onclick: remove }, "✕"));
+    h("button", { class: "btn ghost icon", type: "button", title: "Remover ação", "aria-label": "Remover ação", onclick: remove }, "✕"),
+    gear ? gear.picker : null);
 }
 
 // Faixas abertas no editor (sobrevive aos re-renders)
