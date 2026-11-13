@@ -208,3 +208,24 @@ textarea { resize: vertical; min-height: 70px; }
 .bank-history li { display: flex; align-items: center; gap: 8px; list-style: none; }
 .bank-history li .item-icon { width: 22px; height: 22px; padding: 1px; }
 .bank-history ul { padding-left: 0; }
+
+/* painel DEV */
+#dev-card { margin-bottom: 16px; border-color: color-mix(in srgb, #0ea5e9 45%, var(--border)); }
+.badge.dev { color: #fff; background: #0284c7; border-color: #0284c7; }
+.badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, var(--border)); }
+.dev-grid { display: grid; gap: 14px; margin-top: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dev-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; min-width: 0; }
+.dev-box h3 { margin: 0 0 10px; font-size: 15px; }
+.dev-wide { grid-column: 1 / -1; }
+.dev-line { margin: 0 0 10px; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.dev-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.dev-form label { margin: 0; flex: 1 1 120px; min-width: 0; }
+.dev-form label.wide { flex: 3 1 220px; }
+.dev-form input[type=number] { max-width: 110px; }
+.dev-rows { display: grid; gap: 10px; margin-top: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dev-rows .dev-form { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.dev-actions { align-self: end; }
+#dev-zones { margin: 10px 0 12px; }
+.dev-output { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #0b1020; color: #d1fae5;
+  font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; }
+@media (max-width: 900px) { .dev-grid { grid-template-columns: 1fr; } .dev-rows { grid-template-columns: 1fr; } }

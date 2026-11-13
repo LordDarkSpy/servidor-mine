@@ -127,6 +127,16 @@ export class Api {
   // modo suporte: eventos de um streamer (as chaves da LivePix não passam por aqui)
   streamerRules(id) { return this.request("GET", `/api/admin/players/${id}/rules`); }
   saveStreamerRules(id, rules) { return this.request("PUT", `/api/admin/players/${id}/rules`, { body: { rules } }); }
+  setDev(id, dev) { return this.request("PUT", `/api/admin/players/${id}/dev`, { body: { dev } }); }
+
+  // painel DEV
+  devState() { return this.request("GET", "/api/dev/state"); }
+  devPower(action) { return this.request("POST", `/api/dev/server/${action}`); }
+  devAction(body) { return this.request("POST", "/api/dev/action", { body }); }
+  devConsole(command) { return this.request("POST", "/api/dev/console", { body: { command } }); }
+  devPosition(player) { return this.request("GET", `/api/dev/position/${encodeURIComponent(player)}`); }
+  devAddZone(zone) { return this.request("POST", "/api/dev/zones", { body: zone }); }
+  devDeleteZone(id) { return this.request("DELETE", `/api/dev/zones/${id}`); }
   setAdmin(id, admin) { return this.request("PUT", `/api/admin/players/${id}/admin`, { body: { admin } }); }
   deletePlayer(id) { return this.request("DELETE", `/api/admin/players/${id}`); }
 }

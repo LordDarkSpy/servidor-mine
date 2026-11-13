@@ -127,6 +127,7 @@ form.addEventListener("submit", (ev) => {
 $("#logout").addEventListener("click", (ev) => busy(ev.target, async () => {
   await api.logout();
   clearInterval(bankState.timer);
+  clearInterval(devState.timer);
   setAuthMode("login");
   showAuth();
 }));
@@ -146,6 +147,7 @@ function renderMe() {
   $("#who-name").textContent = me.character || gameName(me);
   $("#who-badges").replaceChildren(...[
     me.admin ? h("span", { class: "badge admin" }, "admin") : null,
+    me.dev ? h("span", { class: "badge dev" }, "dev") : null,
     me.tiktok ? h("span", { class: "badge streamer" }, "streamer") : null].filter(Boolean));
 
   const info = STATES[me.status];
@@ -160,6 +162,7 @@ function renderMe() {
   renderServers(approved ? me.servers : null, me.edition);
   $("#character-card").hidden = !approved;
   $("#bank-card").hidden = !approved;
+  $("#dev-card").hidden = !(approved && me.dev);
   if (approved) {
     $("#form-character").character.value = me.character || "";
     $("#form-character").character.placeholder = gameName(me);
@@ -259,6 +262,9 @@ async function accountAction(button, p, action) {
     } else if (action === "unstreamer") {
       await api.setStreamer(p.id, null);
       flash(`${name} não é mais streamer.`);
+    } else if (action === "dev" || action === "undev") {
+      await api.setDev(p.id, action === "dev");
+      flash(action === "dev" ? `${name} agora é DEV.` : `${name} não é mais DEV.`);
     } else if (action === "admin" || action === "unadmin") {
       await api.setAdmin(p.id, action === "admin");
       flash(action === "admin" ? `${name} agora é admin.` : `${name} não é mais admin.`);
@@ -284,12 +290,14 @@ function renderAccountRow(p) {
     if (p.tiktok && !self) btn("Gerenciar eventos", "support", "btn small");
     if (p.tiktok) btn("Tirar streamer", "unstreamer"); else btn("Tornar streamer", "streamer");
     if (p.admin) btn("Tirar admin", "unadmin"); else btn("Dar admin", "admin");
+    if (p.dev) btn("Tirar DEV", "undev"); else btn("Dar DEV", "dev");
     if (!self) btn("Tirar acesso", "reject", "btn ghost small danger");
   }
   if (p.status === "rejected") { btn("Aprovar", "approve"); btn("Apagar", "delete", "btn ghost small danger"); }
 
   const tags = [
     p.admin ? h("span", { class: "badge admin" }, "admin") : null,
+    p.dev ? h("span", { class: "badge dev" }, "dev") : null,
     p.tiktok ? h("span", { class: "badge streamer" }, `streamer @${p.tiktok}`) : null,
     !p.tiktok && p.requested_tiktok ? h("span", { class: "badge wants" }, `quer ser streamer: @${p.requested_tiktok}`) : null,
     self ? h("span", { class: "badge" }, "você") : null,
@@ -431,6 +439,136 @@ for (const [button, action] of [["#bank-withdraw", "withdraw"], ["#bank-cancel",
       : `Retirada cancelada: ${r.changed} pilha(s) voltaram para o banco.`);
   }).then(updateBankButtons));
 }
+
+// ---------------------------------------------------------------- painel DEV
+
+const devState = { data: null, timer: null };
+const CONTAINER_TEXT = { healthy: "no ar", running: "ligando…", starting: "ligando…", unhealthy: "com problema",
+  exited: "desligado", created: "desligado", restarting: "reiniciando…", paused: "pausado" };
+
+function fillSelect(select, names, first) {
+  const keep = select.value;
+  select.replaceChildren(...(first ? [h("option", { value: "" }, first)] : []),
+    ...names.map((n) => h("option", { value: n }, n)));
+  if ([...select.options].some((o) => o.value === keep)) select.value = keep;
+}
+
+function renderDev() {
+  const d = devState.data;
+  const label = CONTAINER_TEXT[d.container] || d.container;
+  const up = d.container === "healthy";
+  $("#dev-status").textContent = up ? `no ar · ${d.server.players}/${d.server.max}` : label;
+  $("#dev-status").className = "badge" + (up ? " ok" : " wants");
+  $("#dev-server").textContent = `Servidor ${label}.` + (up ? ` ${d.players.length ? "Online: " + d.players.join(", ") : "Ninguém online."}` : "")
+    + (d.busy ? " Operação em andamento…" : "");
+  document.querySelectorAll("[data-power]").forEach((b) => {
+    const a = b.dataset.power;
+    b.disabled = d.busy || (a === "start" ? up : !up);
+  });
+  fillSelect($("#dev-player"), d.players, d.players.length ? null : "(ninguém online)");
+  fillSelect($("#dev-tp").dest, d.players);
+  fillSelect($("#dev-msg").to, d.players, "Todos (aviso no chat)");
+
+  $("#dev-zones").replaceChildren(...(d.zones.length ? d.zones.map((z) => {
+    const del = h("button", { type: "button", class: "btn ghost small danger" }, "Remover");
+    del.addEventListener("click", () => {
+      if (!confirm(`Remover a zona protegida "${z.name}"?`)) return;
+      busy(del, async () => { await api.devDeleteZone(z.id); flash(`Zona "${z.name}" removida.`); await loadDev(); });
+    });
+    const world = { world: "Mundo normal", world_nether: "Nether", world_the_end: "End" }[z.world] || z.world;
+    return h("div", { class: "player-row" },
+      h("div", { class: "player-info" }, h("b", {}, z.name),
+        h("span", { class: "player-meta" }, `${world} · x ${z.x}, y ${z.y}, z ${z.z} · raio ${z.radius} (${z.radius * 2 + 1}×${z.radius * 2 + 1} blocos)`
+          + (z.created_by ? ` · por ${z.created_by}` : ""))),
+      del);
+  }) : [h("p", { class: "hint" }, "Nenhuma zona protegida.")]));
+
+  clearInterval(devState.timer);
+  devState.timer = setInterval(() => { if (!$("#dev-card").hidden) loadDev().catch(() => {}); }, d.busy || !up ? 4000 : 15000);
+}
+
+async function loadDev() {
+  devState.data = await api.devState();
+  renderDev();
+}
+
+function devOut(text) {
+  $("#dev-output").hidden = false;
+  $("#dev-output").textContent = text || "(sem resposta)";
+}
+
+function devPlayer() {
+  const p = $("#dev-player").value;
+  if (!p) throw new Error("Escolha um jogador online.");
+  return p;
+}
+
+const POWER_TEXT = { start: "Ligando o servidor…", restart: "Reiniciando: aviso no chat e volta em ~1 min.", stop: "Desligando: aviso no chat e salva o mundo." };
+document.querySelectorAll("[data-power]").forEach((b) => b.addEventListener("click", () => {
+  const a = b.dataset.power;
+  if (a !== "start" && !confirm(a === "stop" ? "Encerrar o servidor? Todos serão desconectados." : "Reiniciar o servidor? Todos caem por ~1 min.")) return;
+  busy(b, async () => { await api.devPower(a); flash(POWER_TEXT[a]); await loadDev(); });
+}));
+
+document.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () =>
+  busy(b, async () => { const r = await api.devAction({ action: b.dataset.act }); flash(r.response || "Feito."); })));
+
+document.querySelectorAll("[data-pact]").forEach((b) => b.addEventListener("click", () => busy(b, async () => {
+  const player = devPlayer();
+  let text = "";
+  if (b.dataset.pact === "kick") {
+    text = prompt(`Motivo para expulsar ${player}:`, "Expulso pelo DEV");
+    if (text === null) return;
+  }
+  const r = await api.devAction({ action: b.dataset.pact, player, text });
+  flash(r.response || "Feito.");
+})));
+
+for (const [id, action, fields] of [["#dev-give", "give", ["item", "count"]], ["#dev-summon", "summon", ["mob", "count"]],
+  ["#dev-gamemode", "gamemode", ["mode"]], ["#dev-tp", "tp", ["dest"]]]) {
+  $(id).addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    busy(ev.submitter, async () => {
+      const body = { action, player: devPlayer() };
+      for (const f of fields) body[f === "dest" ? "target" : f] = ev.target[f].value;
+      const r = await api.devAction(body);
+      flash(r.response || "Feito.");
+    });
+  });
+}
+
+$("#dev-msg").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const to = ev.target.to.value;
+  busy(ev.submitter, async () => {
+    await api.devAction({ action: to ? "message" : "broadcast", player: to, text: ev.target.text.value });
+    ev.target.text.value = "";
+    flash(to ? `Mensagem enviada para ${to}.` : "Aviso enviado para todos.");
+  });
+});
+
+$("#dev-here").addEventListener("click", (ev) => busy(ev.target, async () => {
+  const pos = await api.devPosition(devPlayer());
+  const f = $("#dev-zone");
+  f.x.value = pos.x; f.y.value = pos.y; f.z.value = pos.z; f.world.value = pos.world;
+  flash(`Posição de ${$("#dev-player").value}: x ${pos.x}, y ${pos.y}, z ${pos.z}.`);
+}));
+
+$("#dev-zone").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  busy(ev.submitter, async () => {
+    await api.devAddZone({ name: f.zname.value, world: f.world.value, x: f.x.value, y: f.y.value, z: f.z.value, radius: f.radius.value });
+    flash(`Zona "${f.zname.value}" protegida.`);
+    f.zname.value = "";
+    await loadDev();
+  });
+});
+
+$("#dev-console").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  busy(ev.submitter, async () => devOut((await api.devConsole(ev.target.command.value)).response));
+});
 
 // ---------------------------------------------------------------- LivePix
 
@@ -689,6 +827,7 @@ async function loadApp() {
   show("view-app");
   const approved = state.me.status === "approved";
   if (approved) await loadBank();
+  if (approved && state.me.dev) await loadDev();
   if (approved && state.me.admin) await loadPlayers();
   if (approved && state.me.streamer) await loadRules();
 }
@@ -698,6 +837,8 @@ async function start() {
   setAuthMode(location.hash === "#cadastro" ? "signup" : "login");
   try {
     state.catalog = await api.catalog();
+    $("#dev-items").replaceChildren(...state.catalog.items.map((i) => h("option", { value: i.id }, i.name)));
+    $("#dev-mobs").replaceChildren(...state.catalog.mobs.map((m) => h("option", { value: m.id }, m.name)));
   } catch (e) {
     $("#offline-msg").textContent = e.message;
     return show("view-offline");

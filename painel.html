@@ -118,6 +118,107 @@
         </details>
       </article>
 
+      <article class="card" id="dev-card" hidden>
+        <div class="bank-head">
+          <h2>Painel DEV</h2>
+          <span id="dev-status" class="badge"></span>
+        </div>
+        <p class="hint">Controle do servidor. Tudo o que você faz aqui fica registrado no log com o seu nick.</p>
+        <div class="dev-grid">
+          <section class="dev-box">
+            <h3>Servidor</h3>
+            <p id="dev-server" class="dev-line"></p>
+            <div class="row">
+              <button class="btn small" type="button" data-power="start">Iniciar</button>
+              <button class="btn ghost small" type="button" data-power="restart">Reiniciar</button>
+              <button class="btn ghost small danger" type="button" data-power="stop">Encerrar</button>
+            </div>
+          </section>
+
+          <section class="dev-box">
+            <h3>Mundo</h3>
+            <div class="row">
+              <button class="btn ghost small" type="button" data-act="day">☀️ Dia</button>
+              <button class="btn ghost small" type="button" data-act="night">🌙 Noite</button>
+              <button class="btn ghost small" type="button" data-act="clear">🌤️ Sol</button>
+              <button class="btn ghost small" type="button" data-act="rain">🌧️ Chuva</button>
+              <button class="btn ghost small" type="button" data-act="thunder">⛈️ Tempestade</button>
+            </div>
+          </section>
+
+          <section class="dev-box">
+            <h3>Mensagem</h3>
+            <form id="dev-msg" class="dev-form">
+              <label>Para<select name="to"><option value="">Todos (aviso no chat)</option></select></label>
+              <label class="wide">Texto<input name="text" maxlength="240" required></label>
+              <button class="btn small" type="submit">Enviar</button>
+            </form>
+          </section>
+
+          <section class="dev-box dev-wide">
+            <h3>Jogador</h3>
+            <div class="dev-form">
+              <label>Jogador online<select id="dev-player"></select></label>
+              <div class="row dev-actions">
+                <button class="btn ghost small" type="button" data-pact="spawn">Levar ao spawn</button>
+                <button class="btn ghost small" type="button" data-pact="heal">Curar</button>
+                <button class="btn ghost small danger" type="button" data-pact="kick">Expulsar</button>
+              </div>
+            </div>
+            <div class="dev-rows">
+              <form class="dev-form" id="dev-give">
+                <label>Item<input name="item" list="dev-items" placeholder="diamond" required spellcheck="false" autocapitalize="off"></label>
+                <label>Qtd.<input name="count" type="number" min="1" max="640" value="1"></label>
+                <button class="btn small" type="submit">Give</button>
+              </form>
+              <form class="dev-form" id="dev-summon">
+                <label>Mob<input name="mob" list="dev-mobs" placeholder="zombie" required spellcheck="false" autocapitalize="off"></label>
+                <label>Qtd.<input name="count" type="number" min="1" max="20" value="1"></label>
+                <button class="btn small" type="submit">Spawnar</button>
+              </form>
+              <form class="dev-form" id="dev-gamemode">
+                <label>Modo de jogo<select name="mode">
+                  <option value="survival">Sobrevivência</option><option value="creative">Criativo</option>
+                  <option value="adventure">Aventura</option><option value="spectator">Espectador</option>
+                </select></label>
+                <button class="btn small" type="submit">Aplicar</button>
+              </form>
+              <form class="dev-form" id="dev-tp">
+                <label>Levar até<select name="dest"></select></label>
+                <button class="btn small" type="submit">Teleportar</button>
+              </form>
+            </div>
+            <datalist id="dev-items"></datalist>
+            <datalist id="dev-mobs"></datalist>
+          </section>
+
+          <section class="dev-box dev-wide">
+            <h3>Zonas protegidas</h3>
+            <p class="hint">Ninguém quebra nem constrói no quadrado de "raio" blocos em volta do ponto (na altura toda). Explosões, fogo, pistões e o buraco dos eventos também não afetam.</p>
+            <div id="dev-zones" class="player-list"></div>
+            <form id="dev-zone" class="dev-form">
+              <label>Nome<input name="zname" maxlength="40" placeholder="Spawn" required></label>
+              <label>Mundo<select name="world"><option value="world">Mundo normal</option><option value="world_nether">Nether</option><option value="world_the_end">End</option></select></label>
+              <label>X<input name="x" type="number" required></label>
+              <label>Y<input name="y" type="number" required></label>
+              <label>Z<input name="z" type="number" required></label>
+              <label>Raio<input name="radius" type="number" min="1" max="512" value="50" required></label>
+              <button class="btn ghost small" type="button" id="dev-here">Usar a posição do jogador</button>
+              <button class="btn small" type="submit">Proteger</button>
+            </form>
+          </section>
+
+          <section class="dev-box dev-wide">
+            <h3>Console</h3>
+            <form id="dev-console" class="dev-form">
+              <label class="wide">Comando<input name="command" maxlength="300" placeholder="list" required spellcheck="false" autocapitalize="off"></label>
+              <button class="btn small" type="submit">Executar</button>
+            </form>
+            <pre id="dev-output" class="dev-output" hidden></pre>
+          </section>
+        </div>
+      </article>
+
       <div class="cards" id="streamer-cards" hidden>
         <article class="card">
           <h2>Sua live</h2>
