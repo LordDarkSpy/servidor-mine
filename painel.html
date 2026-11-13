@@ -128,18 +128,18 @@
         </div>
         <p class="hint">Controle do servidor. Tudo o que você faz aqui fica registrado no log com o seu nick.</p>
         <div class="dev-grid">
-          <details class="tier dev-box" data-fold="server" style="--c: #0ea5e9">
-            <summary><span class="tier-sum"><span class="tier-title">Servidor</span><span class="tier-meta">Ligar, reiniciar e encerrar</span></span></summary>
+          <section class="dev-box">
+            <h3>Servidor</h3>
             <p id="dev-server" class="dev-line"></p>
             <div class="row">
               <button class="btn small" type="button" data-power="start">Iniciar</button>
               <button class="btn ghost small" type="button" data-power="restart">Reiniciar</button>
               <button class="btn ghost small danger" type="button" data-power="stop">Encerrar</button>
             </div>
-          </details>
+          </section>
 
-          <details class="tier dev-box" data-fold="world" style="--c: #f59e0b">
-            <summary><span class="tier-sum"><span class="tier-title">Mundo</span><span class="tier-meta">Dia, noite e clima</span></span></summary>
+          <section class="dev-box">
+            <h3>Mundo</h3>
             <div class="row">
               <button class="btn ghost small" type="button" data-act="day">☀️ Dia</button>
               <button class="btn ghost small" type="button" data-act="night">🌙 Noite</button>
@@ -147,18 +147,18 @@
               <button class="btn ghost small" type="button" data-act="rain">🌧️ Chuva</button>
               <button class="btn ghost small" type="button" data-act="thunder">⛈️ Tempestade</button>
             </div>
-          </details>
+          </section>
 
-          <details class="tier dev-box" data-fold="msg" style="--c: #a855f7">
-            <summary><span class="tier-sum"><span class="tier-title">Mensagem</span><span class="tier-meta">Aviso no chat ou mensagem privada</span></span></summary>
+          <section class="dev-box">
+            <h3>Mensagem</h3>
             <form id="dev-msg" class="dev-form">
               <label>Para<select name="to"><option value="">Todos (aviso no chat)</option></select></label>
               <label class="wide">Texto<input name="text" maxlength="240" required></label>
               <button class="btn small" type="submit">Enviar</button>
             </form>
-          </details>
+          </section>
 
-          <details class="tier dev-box" data-fold="player" style="--c: #22c55e">
+          <details class="tier dev-box dev-wide" data-fold="player" style="--c: #22c55e">
             <summary><span class="tier-sum"><span class="tier-title">Jogador</span><span class="tier-meta">Spawn, curar, expulsar, give, mobs, modo de jogo e teleporte</span></span></summary>
             <div class="dev-form">
               <label>Jogador online<select id="dev-player"></select></label>
@@ -195,7 +195,7 @@
             <datalist id="dev-mobs"></datalist>
           </details>
 
-          <details class="tier dev-box" data-fold="zones" style="--c: #ef4444">
+          <details class="tier dev-box dev-wide" data-fold="zones" style="--c: #ef4444">
             <summary><span class="tier-sum"><span class="tier-title">Zonas protegidas</span><span class="tier-meta" id="dev-zone-count">Áreas onde ninguém quebra nem constrói</span></span></summary>
             <p class="hint">Ninguém quebra nem constrói no quadrado de "raio" blocos em volta do ponto (na altura toda). Explosões, fogo, pistões e o buraco dos eventos também não afetam. Vale até para admin/DEV: só no <b>modo criativo</b> quem tem permissão consegue construir lá.</p>
             <div id="dev-zones" class="player-list"></div>
@@ -211,7 +211,7 @@
             </form>
           </details>
 
-          <details class="tier dev-box" data-fold="console" style="--c: #64748b">
+          <details class="tier dev-box dev-wide" data-fold="console" style="--c: #64748b">
             <summary><span class="tier-sum"><span class="tier-title">Console</span><span class="tier-meta">Qualquer comando do servidor</span></span></summary>
             <form id="dev-console" class="dev-form">
               <label class="wide">Comando<input name="command" maxlength="300" placeholder="list" required spellcheck="false" autocapitalize="off"></label>
