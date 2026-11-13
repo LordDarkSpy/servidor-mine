@@ -260,3 +260,12 @@ textarea { resize: vertical; min-height: 70px; }
 .inv-tip .tip-id { color: #555; font-size: 11px; }
 @media (max-width: 560px) { .inv-grid { grid-template-columns: repeat(9, minmax(0, 1fr)); width: 100%; padding: 6px; gap: 2px; }
   .inv-count { font-size: 8px; } }
+
+/* quanto retirar de cada item selecionado */
+.bank-pick { display: grid; gap: 6px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+.pick-title { font-size: 14px; }
+.pick-row { display: flex; align-items: center; gap: 10px; }
+.pick-row .item-icon { width: 28px; height: 28px; }
+.pick-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.pick-name small { color: var(--muted); font-weight: 500; }
+.pick-row input { width: 90px; flex: none; }

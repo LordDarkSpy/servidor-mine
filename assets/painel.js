@@ -357,7 +357,7 @@ const ENCHANTS = {
   density: "Densidade", breach: "Brecha", wind_burst: "Rajada de vento", luck_of_the_sea: "Sorte do mar", lure: "Isca",
 };
 const ROMAN_LVL = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
-const bankState = { data: null, selected: new Set(), timer: null };
+const bankState = { data: null, selected: new Set(), qty: new Map(), timer: null };
 
 function itemName(id) {
   const key = id.replace(/^minecraft:/, "");
@@ -417,7 +417,7 @@ function hideTip() { $("#inv-tip").hidden = true; }
 function renderBank() {
   const d = bankState.data;
   const pending = d.items.filter((i) => i.status === "withdraw").length;
-  $("#bank-usage").textContent = `${d.items.length}/${d.max_stacks} pilhas`;
+  $("#bank-usage").textContent = `${d.items.length}/${d.max_stacks} espaços`;
   const places = d.chests.map((c) => `x ${c.x}, y ${c.y}, z ${c.z}`).join(" · ");
   $("#bank-where").textContent = d.chests.length
     ? `Para guardar: abra um baú do banco no jogo, coloque os itens na tela e feche. Para retirar: marque aqui, `
@@ -464,8 +464,26 @@ function renderBank() {
 
 function updateBankButtons() {
   const chosen = bankState.data.items.filter((i) => bankState.selected.has(i.id));
-  $("#bank-withdraw").disabled = !chosen.some((i) => i.status === "stored");
+  const stored = chosen.filter((i) => i.status === "stored");
+  $("#bank-withdraw").disabled = !stored.length;
   $("#bank-cancel").disabled = !chosen.some((i) => i.status === "withdraw");
+  // quantidade a retirar de cada item selecionado (padrão: tudo)
+  $("#bank-pick").hidden = !stored.length;
+  $("#bank-pick").replaceChildren(...(stored.length ? [h("b", { class: "pick-title" }, "Quanto retirar")] : []),
+    ...stored.map((it) => {
+      const qty = h("input", { type: "number", min: 1, max: it.count, value: bankState.qty.get(it.id) ?? it.count,
+        "aria-label": `Quantidade de ${it.name || itemName(it.item)}` });
+      qty.addEventListener("input", () => {
+        const n = Math.max(1, Math.min(it.count, Math.floor(Number(qty.value) || 1)));
+        bankState.qty.set(it.id, n);
+      });
+      qty.addEventListener("change", () => { qty.value = bankState.qty.get(it.id) ?? it.count; });
+      const all = h("button", { type: "button", class: "btn ghost small" }, "Tudo");
+      all.addEventListener("click", () => { bankState.qty.set(it.id, it.count); qty.value = it.count; });
+      return h("div", { class: "pick-row" }, itemIcon(it.item),
+        h("span", { class: "pick-name" }, it.name ? `“${it.name}”` : itemName(it.item), h("small", {}, ` de ${it.count}`)),
+        qty, all);
+    }));
 }
 
 async function loadBank() {
@@ -476,13 +494,16 @@ async function loadBank() {
 for (const [button, action] of [["#bank-withdraw", "withdraw"], ["#bank-cancel", "cancel"]]) {
   $(button).addEventListener("click", (ev) => busy(ev.target, async () => {   // busy() reativa o botão no fim
     const want = action === "withdraw" ? "stored" : "withdraw";
-    const ids = bankState.data.items.filter((i) => bankState.selected.has(i.id) && i.status === want).map((i) => i.id);
-    const r = await api.bankRequest(action, ids);
+    const chosen = bankState.data.items.filter((i) => bankState.selected.has(i.id) && i.status === want);
+    const r = await api.bankRequest(action, action === "withdraw"
+      ? chosen.map((i) => ({ id: i.id, count: bankState.qty.get(i.id) ?? i.count }))
+      : chosen.map((i) => i.id));
     bankState.selected.clear();
+    bankState.qty.clear();
     await loadBank();
     flash(action === "withdraw"
-      ? `${r.changed} pilha(s) separadas. Abra um baú do banco no jogo para receber no inventário.`
-      : `Retirada cancelada: ${r.changed} pilha(s) voltaram para o banco.`);
+      ? `${r.changed} item(ns) separados. Abra um baú do banco no jogo para receber no inventário.`
+      : `Retirada cancelada: ${r.changed} item(ns) voltaram para o banco.`);
   }).then(updateBankButtons));
 }
 
