@@ -101,6 +101,23 @@
         <div id="servers" class="servers"></div>
       </article>
 
+      <article class="card" id="bank-card" hidden>
+        <div class="bank-head">
+          <h2>Banco de itens</h2>
+          <span id="bank-usage" class="badge"></span>
+        </div>
+        <p id="bank-where" class="hint"></p>
+        <div id="bank-list" class="bank-list"></div>
+        <div class="row bank-actions" id="bank-actions" hidden>
+          <button id="bank-withdraw" class="btn small" type="button" disabled>Retirar selecionados</button>
+          <button id="bank-cancel" class="btn ghost small" type="button" disabled>Cancelar retirada</button>
+        </div>
+        <details class="bank-history" id="bank-history-box" hidden>
+          <summary>Histórico</summary>
+          <ul id="bank-history"></ul>
+        </details>
+      </article>
+
       <div class="cards" id="streamer-cards" hidden>
         <article class="card">
           <h2>Sua live</h2>

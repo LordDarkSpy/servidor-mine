@@ -184,3 +184,21 @@ textarea { resize: vertical; min-height: 70px; }
 .support-bar > div { display: grid; gap: 4px; min-width: 0; }
 .support-bar b { overflow-wrap: anywhere; }
 .support-lock { font-size: 13px; color: var(--muted); }
+
+/* banco de itens */
+#bank-card, #character-card { margin-bottom: 16px; }
+.bank-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bank-head h2 { margin: 0; }
+.bank-list { display: grid; gap: 6px; margin-top: 14px; max-height: 420px; overflow-y: auto; }
+.bank-item { display: flex; align-items: center; gap: 12px; margin: 0; padding: 10px 12px; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; font-weight: 500; }
+.bank-item.pending { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); }
+.bank-item input { width: 18px; height: 18px; flex: none; margin: 0; }
+.bank-info { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.bank-info b { overflow-wrap: anywhere; }
+.bank-meta { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.bank-count { font-weight: 800; font-variant-numeric: tabular-nums; }
+.bank-actions { margin-top: 12px; }
+.bank-history { margin-top: 14px; }
+.bank-history summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+.bank-history ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; color: var(--muted); display: grid; gap: 4px; }

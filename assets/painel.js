@@ -126,6 +126,7 @@ form.addEventListener("submit", (ev) => {
 
 $("#logout").addEventListener("click", (ev) => busy(ev.target, async () => {
   await api.logout();
+  clearInterval(bankState.timer);
   setAuthMode("login");
   showAuth();
 }));
@@ -158,6 +159,7 @@ function renderMe() {
 
   renderServers(approved ? me.servers : null, me.edition);
   $("#character-card").hidden = !approved;
+  $("#bank-card").hidden = !approved;
   if (approved) {
     $("#form-character").character.value = me.character || "";
     $("#form-character").character.placeholder = gameName(me);
@@ -331,6 +333,95 @@ $("#form-character").addEventListener("submit", (ev) => {
     flash(r.account.character ? `Pronto! No servidor você aparece como ${r.account.character}.` : "Pronto! No servidor você aparece com o seu nick.");
   });
 });
+
+// ---------------------------------------------------------------- banco de itens
+
+const ENCHANTS = {
+  sharpness: "Afiação", smite: "Julgamento", bane_of_arthropods: "Ruína dos artrópodes", knockback: "Repulsão",
+  fire_aspect: "Aspecto flamejante", looting: "Pilhagem", sweeping_edge: "Alcance", efficiency: "Eficiência",
+  silk_touch: "Toque suave", unbreaking: "Inquebrável", fortune: "Fortuna", power: "Força", punch: "Impacto",
+  flame: "Chama", infinity: "Infinidade", protection: "Proteção", fire_protection: "Proteção contra fogo",
+  blast_protection: "Proteção contra explosões", projectile_protection: "Proteção contra projéteis",
+  feather_falling: "Peso-pena", respiration: "Respiração", aqua_affinity: "Afinidade aquática", thorns: "Espinhos",
+  depth_strider: "Passos profundos", frost_walker: "Passos gelados", mending: "Remendo", soul_speed: "Velocidade das almas",
+  swift_sneak: "Agachamento rápido", loyalty: "Lealdade", riptide: "Correnteza", channeling: "Condutividade",
+  impaling: "Empalamento", multishot: "Disparo múltiplo", quick_charge: "Recarga rápida", piercing: "Perfuração",
+  density: "Densidade", breach: "Brecha", wind_burst: "Rajada de vento", luck_of_the_sea: "Sorte do mar", lure: "Isca",
+};
+const ROMAN_LVL = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+const bankState = { data: null, selected: new Set(), timer: null };
+
+function itemName(id) {
+  const key = id.replace(/^minecraft:/, "");
+  const known = state.catalog?.items?.find((i) => i.id === key)?.name;
+  return known || key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
+
+function enchantText(details) {
+  return (details || "").split(", ").filter(Boolean).map((part) => {
+    const [id, lvl] = part.split(" ");
+    return `${ENCHANTS[id] || id.replace(/_/g, " ")} ${ROMAN_LVL[Number(lvl)] || lvl}`;
+  }).join(", ");
+}
+
+function renderBank() {
+  const d = bankState.data;
+  const pending = d.items.filter((i) => i.status === "withdraw").length;
+  $("#bank-usage").textContent = `${d.items.length}/${d.max_stacks} pilhas`;
+  const booth = d.booths[0];
+  $("#bank-where").textContent = booth
+    ? `Para guardar: entre sozinho na cabine do banco (x ${booth.x}, y ${booth.y}, z ${booth.z}) e coloque os itens no baú. `
+      + `Para retirar: marque aqui, clique em Retirar e entre na cabine. Os itens vão direto para o seu inventário.`
+    : "A cabine do banco ainda não foi colocada no mapa.";
+  if (pending) $("#bank-where").textContent += ` Você tem ${pending} pilha(s) esperando na cabine.`;
+
+  bankState.selected = new Set([...bankState.selected].filter((id) => d.items.some((i) => i.id === id)));
+  const rows = d.items.map((it) => {
+    const box = h("input", { type: "checkbox", checked: bankState.selected.has(it.id),
+      "aria-label": `Selecionar ${it.name || itemName(it.item)}`,
+      onchange: (e) => { e.target.checked ? bankState.selected.add(it.id) : bankState.selected.delete(it.id); updateBankButtons(); } });
+    return h("label", { class: "bank-item" + (it.status === "withdraw" ? " pending" : "") }, box,
+      h("span", { class: "bank-info" },
+        h("b", {}, it.name ? `“${it.name}”` : itemName(it.item)),
+        h("span", { class: "bank-meta" }, [it.name ? itemName(it.item) : null, enchantText(it.details) || null].filter(Boolean).join(" · "))),
+      it.status === "withdraw" ? h("span", { class: "badge wants" }, "a retirar") : null,
+      h("span", { class: "bank-count" }, `×${it.count}`));
+  });
+  $("#bank-list").replaceChildren(...(rows.length ? rows : [h("p", { class: "hint" }, "Seu banco está vazio.")]));
+  $("#bank-actions").hidden = !rows.length;
+  updateBankButtons();
+
+  $("#bank-history-box").hidden = !d.history.length;
+  $("#bank-history").replaceChildren(...d.history.map((e) => h("li", {},
+    `${e.action === "deposito" ? "⬇ Guardou" : "⬆ Retirou"} ${e.count}× ${e.name ? `“${e.name}”` : itemName(e.item)} · ${dateBR(e.at)}`)));
+
+  clearInterval(bankState.timer);   // com retirada pendente, acompanha a entrega
+  if (pending) bankState.timer = setInterval(() => loadBank().catch(() => {}), 10000);
+}
+
+function updateBankButtons() {
+  const chosen = bankState.data.items.filter((i) => bankState.selected.has(i.id));
+  $("#bank-withdraw").disabled = !chosen.some((i) => i.status === "stored");
+  $("#bank-cancel").disabled = !chosen.some((i) => i.status === "withdraw");
+}
+
+async function loadBank() {
+  bankState.data = await api.bank();
+  renderBank();
+}
+
+for (const [button, action] of [["#bank-withdraw", "withdraw"], ["#bank-cancel", "cancel"]]) {
+  $(button).addEventListener("click", (ev) => busy(ev.target, async () => {   // busy() reativa o botão no fim
+    const want = action === "withdraw" ? "stored" : "withdraw";
+    const ids = bankState.data.items.filter((i) => bankState.selected.has(i.id) && i.status === want).map((i) => i.id);
+    const r = await api.bankRequest(action, ids);
+    bankState.selected.clear();
+    await loadBank();
+    flash(action === "withdraw"
+      ? `${r.changed} pilha(s) separadas. Entre na cabine do banco para receber no inventário.`
+      : `Retirada cancelada: ${r.changed} pilha(s) voltaram para o banco.`);
+  }).then(updateBankButtons));
+}
 
 // ---------------------------------------------------------------- LivePix
 
@@ -588,6 +679,7 @@ async function loadApp() {
   renderMe();
   show("view-app");
   const approved = state.me.status === "approved";
+  if (approved) await loadBank();
   if (approved && state.me.admin) await loadPlayers();
   if (approved && state.me.streamer) await loadRules();
 }

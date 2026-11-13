@@ -113,6 +113,8 @@ export class Api {
     return this.request("PUT", "/api/me/livepix", { body: { client_id, client_secret }, sealed: true });
   }
   removeLivePix() { return this.request("DELETE", "/api/me/livepix"); }
+  bank() { return this.request("GET", "/api/bank"); }
+  bankRequest(action, ids) { return this.request("POST", `/api/bank/${action}`, { body: { ids } }); }
   myRules() { return this.request("GET", "/api/me/rules"); }
   saveMyRules(rules) { return this.request("PUT", "/api/me/rules", { body: { rules } }); }
 
