@@ -381,6 +381,39 @@ function enchantText(details) {
   }).join(", ");
 }
 
+// Dica ao passar o mouse num espaço do inventário (estilo do jogo)
+function showTip(it, slot, ev) {
+  const tip = $("#inv-tip");
+  const enchants = enchantText(it.details);
+  tip.replaceChildren(...[
+    h("b", { class: it.name ? "tip-custom" : it.details ? "tip-ench" : "" }, it.name || itemName(it.item)),
+    it.name ? h("span", { class: "tip-sub" }, itemName(it.item)) : null,
+    ...(enchants ? enchants.split(", ").map((e) => h("span", { class: "tip-line" }, e)) : []),
+    h("span", { class: "tip-dim" }, `Quantidade: ${it.count}`),
+    it.status === "withdraw" ? h("span", { class: "tip-warn" }, "A retirar: abra um baú do banco") : null,
+    h("span", { class: "tip-dim" }, `Guardado em ${dateBR(it.deposited_at)}`),
+    h("span", { class: "tip-id" }, it.item)].filter(Boolean));
+  tip.hidden = false;
+  if (ev?.clientX) moveTip(ev);
+  else {
+    const r = slot.getBoundingClientRect();
+    moveTip({ clientX: r.right, clientY: r.top });
+  }
+}
+
+function moveTip(ev) {
+  const tip = $("#inv-tip");
+  if (tip.hidden) return;
+  const pad = 14, w = tip.offsetWidth, hgt = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY - hgt - 6;
+  if (x + w > innerWidth - 8) x = ev.clientX - w - pad;
+  if (y < 8) y = ev.clientY + pad + 10;
+  tip.style.left = `${Math.max(8, x)}px`;
+  tip.style.top = `${Math.max(8, y)}px`;
+}
+
+function hideTip() { $("#inv-tip").hidden = true; }
+
 function renderBank() {
   const d = bankState.data;
   const pending = d.items.filter((i) => i.status === "withdraw").length;
@@ -393,18 +426,31 @@ function renderBank() {
   if (pending) $("#bank-where").textContent += ` Você tem ${pending} pilha(s) esperando: abra um baú do banco para receber.`;
 
   bankState.selected = new Set([...bankState.selected].filter((id) => d.items.some((i) => i.id === id)));
-  const rows = d.items.map((it) => {
-    const box = h("input", { type: "checkbox", checked: bankState.selected.has(it.id),
-      "aria-label": `Selecionar ${it.name || itemName(it.item)}`,
-      onchange: (e) => { e.target.checked ? bankState.selected.add(it.id) : bankState.selected.delete(it.id); updateBankButtons(); } });
-    return h("label", { class: "bank-item" + (it.status === "withdraw" ? " pending" : "") }, box, itemIcon(it.item),
-      h("span", { class: "bank-info" },
-        h("b", {}, it.name ? `“${it.name}”` : itemName(it.item)),
-        h("span", { class: "bank-meta" }, [it.name ? itemName(it.item) : null, enchantText(it.details) || null].filter(Boolean).join(" · "))),
-      it.status === "withdraw" ? h("span", { class: "badge wants" }, "a retirar") : null,
-      h("span", { class: "bank-count" }, `×${it.count}`));
+  // inventário: espaços de 9 em 9 (mínimo 3 fileiras, como um baú), itens nos primeiros
+  const slots = d.items.map((it) => {
+    const label = it.name || itemName(it.item);
+    const slot = h("button", { type: "button", class: "inv-slot" + (it.status === "withdraw" ? " pending" : "")
+        + (it.details ? " enchanted" : "") + (bankState.selected.has(it.id) ? " selected" : ""),
+      "aria-label": `${label}, ${it.count}` + (it.status === "withdraw" ? ", a retirar" : ""),
+      "aria-pressed": String(bankState.selected.has(it.id)) },
+      itemIcon(it.item), it.count > 1 ? h("span", { class: "inv-count" }, String(it.count)) : null);
+    slot.addEventListener("click", () => {
+      bankState.selected.has(it.id) ? bankState.selected.delete(it.id) : bankState.selected.add(it.id);
+      slot.classList.toggle("selected", bankState.selected.has(it.id));
+      slot.setAttribute("aria-pressed", String(bankState.selected.has(it.id)));
+      updateBankButtons();
+    });
+    for (const ev of ["pointerenter", "focus"]) slot.addEventListener(ev, (e) => showTip(it, slot, e));
+    slot.addEventListener("pointermove", (e) => moveTip(e));
+    for (const ev of ["pointerleave", "blur"]) slot.addEventListener(ev, hideTip);
+    return slot;
   });
-  $("#bank-list").replaceChildren(...(rows.length ? rows : [h("p", { class: "hint" }, "Seu banco está vazio.")]));
+  const total = Math.max(27, Math.ceil(slots.length / 9) * 9);
+  while (slots.length < total) slots.push(h("span", { class: "inv-slot empty", "aria-hidden": "true" }));
+  $("#bank-list").replaceChildren(h("div", { class: "inv-grid", role: "group", "aria-label": "Itens do banco" }, slots));
+  $("#bank-list").classList.toggle("is-empty", !d.items.length);
+  const rows = d.items;
+  if (!rows.length) $("#bank-list").append(h("p", { class: "hint" }, "Seu banco está vazio."));
   $("#bank-actions").hidden = !rows.length;
   updateBankButtons();
 
