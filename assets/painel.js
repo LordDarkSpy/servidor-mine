@@ -128,6 +128,7 @@ $("#logout").addEventListener("click", (ev) => busy(ev.target, async () => {
   await api.logout();
   clearInterval(bankState.timer);
   clearInterval(devState.timer);
+  clearInterval(duelState.timer);
   setAuthMode("login");
   showAuth();
 }));
@@ -674,6 +675,27 @@ function gearChooser({ item, enchantments, common, onchange }) {
   return { fields, picker };
 }
 
+// ---------------------------------------------------------------- ranking de duelos
+
+const duelState = { timer: null };
+
+async function loadDuels() {
+  const d = await api.duels();
+  const rows = d.ranking.map((r, i) => h("li", { class: "duel-rank" + (i < 3 ? ` top${i + 1}` : "") },
+    h("span", { class: "duel-pos" }, ["🥇", "🥈", "🥉"][i] ?? `${i + 1}º`),
+    h("b", { class: "duel-name" }, r.name),
+    h("span", { class: "duel-stats" }, `${r.wins} V · ${r.losses} D${r.draws ? ` · ${r.draws} E` : ""}`)));
+  $("#duel-ranking").replaceChildren(...(rows.length ? rows : [h("li", { class: "hint" }, "Ninguém duelou ainda.")]));
+  const when = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  $("#duel-recent").replaceChildren(...d.recent.map((r) => h("li", {},
+    r.winner ? `🏆 ${r.winner} venceu ${r.winner === r.player_a ? r.player_b : r.player_a}` : `⚖ ${r.player_a} × ${r.player_b}: ${r.reason || "empate"}`,
+    h("span", { class: "hint" }, ` · ${when(r.at)}`))));
+  $("#duel-recent-box").hidden = !d.recent.length;
+  $("#duel-card").hidden = false;
+  clearInterval(duelState.timer);
+  duelState.timer = setInterval(() => { if (!$("#duel-card").hidden) loadDuels().catch(() => {}); }, 30000);
+}
+
 // ---------------------------------------------------------------- painel DEV
 
 const devState = { data: null, timer: null };
@@ -876,6 +898,8 @@ function newAction(type) {
     case "effect": return { type, effect: c.effects[0].id, duration: 20, amplifier: 0, weight: 1 };
     case "tnt": return { type, amount: 1, weight: 1 };
     case "hole": return { type, size: 4, depth: 3, weight: 1 };
+    case "armed_mob": return { type, mob: c.armed_mobs[0].id, amount: 1, weapons: ["sword", "axe", "bow"],
+      min_quality: 0, max_quality: c.qualities.length - 1, weight: 1 };
     default: return { type, weight: 1 };
   }
 }
@@ -925,6 +949,39 @@ function actionParams(action, gear) {
         numberInput("Tamanho", action.size, { min: 2, max: c.limits.hole_size_max, onchange: (v) => (action.size = v) }),
         numberInput("Fundo", action.depth, { max: c.limits.hole_depth_max, onchange: (v) => (action.depth = v) }),
       ];
+    case "armed_mob": {
+      const mob = c.armed_mobs.find((m) => m.id === action.mob) ?? c.armed_mobs[0];
+      const quality = (label, key) => h("label", { class: "wide" }, label, h("select", {
+        onchange: (e) => { action[key] = Number(e.target.value); markDirty(); },
+      }, c.qualities.map((q) => h("option", { value: String(q.id), selected: q.id === action[key] }, q.name))));
+      const weapons = c.weapons.filter((w) => mob.bow || w.id !== "bow");
+      return [
+        h("label", { class: "wide" }, "Mob", h("select", {
+          onchange: (e) => {
+            action.mob = e.target.value;
+            const next = c.armed_mobs.find((m) => m.id === action.mob);
+            action.amount = Math.min(action.amount, next.max);
+            if (!next.bow) action.weapons = action.weapons.filter((w) => w !== "bow");
+            if (!action.weapons.length) action.weapons = ["sword"];
+            renderEditor(); markDirty();
+          },
+        }, c.armed_mobs.map((m) => h("option", { value: m.id, selected: m.id === mob.id }, `${m.name} (máx. ${m.max})`)))),
+        numberInput("Qtd.", action.amount, { max: mob.max, onchange: (v) => (action.amount = v) }),
+        quality("Qualidade mín.", "min_quality"),
+        quality("Qualidade máx.", "max_quality"),
+        h("fieldset", { class: "weapons" }, h("legend", {}, "Armas que podem sair (uma sorteada por mob)"),
+          weapons.map((w) => h("label", { class: "check" },
+            h("input", { type: "checkbox", checked: action.weapons.includes(w.id), onchange: (e) => {
+              const set = new Set(action.weapons);
+              if (e.target.checked) set.add(w.id); else set.delete(w.id);
+              action.weapons = c.weapons.map((x) => x.id).filter((id) => set.has(id));
+              markDirty();
+            } }), w.name))),
+        h("p", { class: "hint wide-all" }, "Cada mob nasce com uma das armas marcadas e armadura completa, cada peça com qualidade sorteada entre a mínima e a máxima. Ao morrer, deixa tudo cair (o arco vem com flechas)."),
+      ];
+    }
+    case "duel":
+      return [h("span", { class: "static" }, "Sorteia um jogador online para duelar com você na arena. Os dois lutam com armas e armadura sorteadas e o inventário volta no fim. Quem vence sobe no ranking.")];
     default:
       return [h("span", { class: "static" }, "Sem opções")];
   }
@@ -1102,6 +1159,7 @@ async function loadApp() {
   show("view-app");
   const approved = state.me.status === "approved";
   if (approved) await loadBank();
+  if (approved) await loadDuels().catch(() => {});
   if (approved && state.me.dev) await loadDev();
   if (approved && state.me.admin) await loadPlayers();
   if (approved && state.me.streamer) await loadRules();

@@ -85,6 +85,7 @@ export class Api {
 
   // públicos
   catalog() { return this.request("GET", "/api/catalog", { auth: false }); }
+  duels() { return this.request("GET", "/api/duels", { auth: false }); }
   serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
 
   // conta

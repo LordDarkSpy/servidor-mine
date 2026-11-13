@@ -296,3 +296,22 @@ section.dev-box { background: var(--bg); border: 1px solid var(--border); border
 .dev-ench:empty, .dev-ench .gear-ench:empty { display: none; }
 .dev-rows #dev-give { grid-column: 1 / -1; }
 #dev-give .gear-fields > label { margin: 0; flex: 1 1 140px; min-width: 0; }
+
+/* mob armado (editor de eventos) */
+.weapons { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; min-width: 0; }
+.weapons legend { font-size: 13px; font-weight: 600; padding: 0 4px; }
+.weapons .check { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 500; cursor: pointer; }
+.weapons .check input { width: 16px; height: 16px; margin: 0; }
+.params .wide-all { grid-column: 1 / -1; margin: 0; }
+
+/* ranking de duelos */
+#duel-card { margin-bottom: 16px; }
+.duel-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+.duel-rank { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+.duel-rank.top1 { border-color: #eab308; background: color-mix(in srgb, #eab308 10%, var(--bg)); }
+.duel-rank.top2 { border-color: #94a3b8; }
+.duel-rank.top3 { border-color: #c2410c; }
+.duel-pos { width: 30px; text-align: center; font-weight: 700; }
+.duel-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.duel-stats { font-size: 13px; color: var(--muted); white-space: nowrap; }
+#duel-recent { padding-left: 18px; }
