@@ -20,11 +20,9 @@ function h(tag, attrs = {}, ...children) {
 const state = {
   me: null,
   catalog: null,
-  scope: "mine",        // "mine" | "default" (admin)
   kind: "gift",         // "gift" | "pix"
   rules: null,          // ruleset em edição
   saved: "",            // JSON do último estado salvo (para detectar mudanças)
-  custom: false,
   authMode: "login",    // "login" | "signup"
 };
 let refreshTimer = null;
@@ -178,10 +176,7 @@ function renderMe() {
   }
 
   $("#players-card").hidden = !(approved && me.admin);
-  $("#editor-card").hidden = !(approved && (s || me.admin));
-  $("#scope").hidden = !(s && me.admin);
-  if (!s && me.admin) state.scope = "default";
-  if (s && !me.admin) state.scope = "mine";
+  $("#editor-card").hidden = !(approved && s);
 
   clearInterval(refreshTimer);
   if (me.status === "pending") refreshTimer = setInterval(refreshAccount, 30000);
@@ -364,14 +359,7 @@ const dirty = () => JSON.stringify(state.rules) !== state.saved;
 const markDirty = () => $(".editor-card").classList.toggle("dirty", dirty());
 
 async function loadRules() {
-  if (state.scope === "default") {
-    state.rules = (await api.defaultRules()).rules;
-    state.custom = true;
-  } else {
-    const r = await api.myRules();
-    state.rules = r.rules;
-    state.custom = r.custom;
-  }
+  state.rules = (await api.myRules()).rules;
   state.rules.gift ??= [];
   state.rules.pix ??= [];
   state.saved = JSON.stringify(state.rules);
@@ -510,14 +498,10 @@ function renderEditor() {
   const list = state.rules[state.kind];
   $("#tiers").replaceChildren(...list.map((t, i) => renderTier(t, i, list)));
   $("#add-tier").hidden = list.length >= state.catalog.limits.tiers_per_type;
-  $("#rules-mode").textContent = state.scope === "default"
-    ? "Você está editando o PADRÃO do servidor: vale para todos os streamers sem personalização."
-    : state.custom
-      ? "Você está usando faixas personalizadas."
-      : "Você está usando o padrão do servidor. Ao salvar, passa a ter faixas próprias.";
-  $("#reset").hidden = state.scope === "default" || !state.custom;
+  $("#rules-mode").textContent = list.length
+    ? "Cada faixa define o que acontece no jogo quando uma doação cai nesse valor."
+    : `Você ainda não tem eventos ${state.kind === "pix" ? "de Pix" : "de presentes"}: nada acontece no jogo até você adicionar uma faixa.`;
   document.querySelectorAll(".kind button").forEach((b) => b.setAttribute("aria-selected", b.dataset.kind === state.kind));
-  document.querySelectorAll("#scope button").forEach((b) => b.setAttribute("aria-checked", b.dataset.scope === state.scope));
   showErrors([]);
   markDirty();
 }
@@ -529,13 +513,6 @@ function showErrors(errors) {
 }
 
 document.querySelectorAll(".kind button").forEach((b) => b.addEventListener("click", () => { state.kind = b.dataset.kind; renderEditor(); }));
-
-document.querySelectorAll("#scope button").forEach((b) => b.addEventListener("click", () => {
-  if (b.dataset.scope === state.scope) return;
-  if (dirty() && !confirm("Descartar as mudanças não salvas?")) return;
-  state.scope = b.dataset.scope;
-  busy(b, loadRules);
-}));
 
 $("#add-tier").addEventListener("click", () => {
   const list = state.rules[state.kind];
@@ -550,23 +527,13 @@ $("#add-tier").addEventListener("click", () => {
 
 $("#save").addEventListener("click", (ev) => busy(ev.target, async () => {
   showErrors([]);
-  if (state.scope === "default") await api.saveDefaultRules(state.rules);
-  else await api.saveMyRules(state.rules);
-  flash(state.scope === "default" ? "Padrão do servidor salvo. Já vale no jogo." : "Eventos salvos. Já valem na próxima doação.");
+  await api.saveMyRules(state.rules);
+  flash("Eventos salvos. Já valem na próxima doação.");
   await loadRules();
 }));
 
 $("#discard").addEventListener("click", (ev) => {
   if (!dirty() || confirm("Descartar as mudanças não salvas?")) busy(ev.target, loadRules);
-});
-
-$("#reset").addEventListener("click", (ev) => {
-  if (!confirm("Apagar suas faixas personalizadas e voltar ao padrão do servidor?")) return;
-  busy(ev.target, async () => {
-    await api.resetMyRules();
-    flash("Você voltou a usar o padrão do servidor.");
-    await loadRules();
-  });
 });
 
 window.addEventListener("beforeunload", (e) => { if (state.rules && dirty()) e.preventDefault(); });
@@ -579,7 +546,7 @@ async function loadApp() {
   show("view-app");
   const approved = state.me.status === "approved";
   if (approved && state.me.admin) await loadPlayers();
-  if (approved && (state.me.streamer || state.me.admin)) await loadRules();
+  if (approved && state.me.streamer) await loadRules();
 }
 
 async function start() {

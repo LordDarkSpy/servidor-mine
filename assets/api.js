@@ -85,7 +85,6 @@ export class Api {
 
   // públicos
   catalog() { return this.request("GET", "/api/catalog", { auth: false }); }
-  publicTiers() { return this.request("GET", "/api/public/tiers", { auth: false }); }
   serverStatus() { return this.request("GET", "/api/public/status", { auth: false }); }
 
   // conta
@@ -116,11 +115,8 @@ export class Api {
   removeLivePix() { return this.request("DELETE", "/api/me/livepix"); }
   myRules() { return this.request("GET", "/api/me/rules"); }
   saveMyRules(rules) { return this.request("PUT", "/api/me/rules", { body: { rules } }); }
-  resetMyRules() { return this.request("DELETE", "/api/me/rules"); }
 
   // admin
-  defaultRules() { return this.request("GET", "/api/admin/rules"); }
-  saveDefaultRules(rules) { return this.request("PUT", "/api/admin/rules", { body: { rules } }); }
   players(status) { return this.request("GET", "/api/admin/players" + (status ? `?status=${status}` : "")); }
   decidePlayer(id, action, reason) {
     return this.request("POST", `/api/admin/players/${id}/${action}`, action === "reject" ? { body: { reason } } : {});
