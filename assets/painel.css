@@ -176,3 +176,11 @@ textarea { resize: vertical; min-height: 70px; }
 @media (max-width: 720px) { .who #who-name { max-width: 40vw; } }
 .brand-link { white-space: nowrap; }
 @media (max-width: 480px) { .brand-text { display: none; } }
+
+/* modo suporte (admin editando os eventos de um streamer) */
+.support-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: -4px 0 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 10%, transparent); }
+.support-bar > div { display: grid; gap: 4px; min-width: 0; }
+.support-bar b { overflow-wrap: anywhere; }
+.support-lock { font-size: 13px; color: var(--muted); }

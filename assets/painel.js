@@ -21,6 +21,7 @@ const state = {
   me: null,
   catalog: null,
   kind: "gift",         // "gift" | "pix"
+  support: null,        // modo suporte do admin: { id, name, tiktok, livepix } do streamer em edição
   rules: null,          // ruleset em edição
   saved: "",            // JSON do último estado salvo (para detectar mudanças)
   authMode: "login",    // "login" | "signup"
@@ -176,7 +177,7 @@ function renderMe() {
   }
 
   $("#players-card").hidden = !(approved && me.admin);
-  $("#editor-card").hidden = !(approved && s);
+  $("#editor-card").hidden = !(approved && (s || state.support));
 
   clearInterval(refreshTimer);
   if (me.status === "pending") refreshTimer = setInterval(refreshAccount, 30000);
@@ -236,6 +237,7 @@ async function accountAction(button, p, action) {
     tiktok = prompt(`@ do TikTok de ${name}:`, p.requested_tiktok ? "@" + p.requested_tiktok : "@");
     if (!tiktok || tiktok === "@") return;
   }
+  if (action === "support") return openSupport(button, p);
   if (action === "unstreamer" && !confirm(`Tirar o streamer de ${name}? A live dele deixa de gerar eventos.`)) return;
   if (action === "delete" && !confirm(`Apagar a conta de ${name}? A pessoa poderá se cadastrar de novo.`)) return;
 
@@ -277,6 +279,7 @@ function renderAccountRow(p) {
   const self = p.id === state.me.id;
   if (p.status === "pending") { btn("Aprovar", "approve", "btn small"); btn("Recusar", "reject", "btn ghost small danger"); }
   if (p.status === "approved") {
+    if (p.tiktok && !self) btn("Gerenciar eventos", "support", "btn small");
     if (p.tiktok) btn("Tirar streamer", "unstreamer"); else btn("Tornar streamer", "streamer");
     if (p.admin) btn("Tirar admin", "unadmin"); else btn("Dar admin", "admin");
     if (!self) btn("Tirar acesso", "reject", "btn ghost small danger");
@@ -359,7 +362,7 @@ const dirty = () => JSON.stringify(state.rules) !== state.saved;
 const markDirty = () => $(".editor-card").classList.toggle("dirty", dirty());
 
 async function loadRules() {
-  state.rules = (await api.myRules()).rules;
+  state.rules = state.support ? (await api.streamerRules(state.support.id)).rules : (await api.myRules()).rules;
   state.rules.gift ??= [];
   state.rules.pix ??= [];
   state.saved = JSON.stringify(state.rules);
@@ -498,9 +501,10 @@ function renderEditor() {
   const list = state.rules[state.kind];
   $("#tiers").replaceChildren(...list.map((t, i) => renderTier(t, i, list)));
   $("#add-tier").hidden = list.length >= state.catalog.limits.tiers_per_type;
+  const who = state.support ? `${state.support.name} ainda não tem` : "Você ainda não tem";
   $("#rules-mode").textContent = list.length
     ? "Cada faixa define o que acontece no jogo quando uma doação cai nesse valor."
-    : `Você ainda não tem eventos ${state.kind === "pix" ? "de Pix" : "de presentes"}: nada acontece no jogo até você adicionar uma faixa.`;
+    : `${who} eventos ${state.kind === "pix" ? "de Pix" : "de presentes"}: nada acontece no jogo até adicionar uma faixa.`;
   document.querySelectorAll(".kind button").forEach((b) => b.setAttribute("aria-selected", b.dataset.kind === state.kind));
   showErrors([]);
   markDirty();
@@ -527,8 +531,9 @@ $("#add-tier").addEventListener("click", () => {
 
 $("#save").addEventListener("click", (ev) => busy(ev.target, async () => {
   showErrors([]);
-  await api.saveMyRules(state.rules);
-  flash("Eventos salvos. Já valem na próxima doação.");
+  if (state.support) await api.saveStreamerRules(state.support.id, state.rules);
+  else await api.saveMyRules(state.rules);
+  flash(state.support ? `Eventos de ${state.support.name} salvos. Já valem na próxima doação.` : "Eventos salvos. Já valem na próxima doação.");
   await loadRules();
 }));
 
@@ -536,11 +541,49 @@ $("#discard").addEventListener("click", (ev) => {
   if (!dirty() || confirm("Descartar as mudanças não salvas?")) busy(ev.target, loadRules);
 });
 
+// ---------------------------------------------------------------- modo suporte (admin)
+
+// O admin edita os eventos de um streamer. As chaves da LivePix ficam bloqueadas: só aparece o status.
+function renderSupportBar() {
+  const s = state.support;
+  $("#support-bar").hidden = !s;
+  if (!s) return;
+  $("#support-title").textContent = `🛠 Modo suporte: eventos de ${s.name} (@${s.tiktok})`;
+  const pix = s.livepix.configured ? `configurada${s.livepix.status ? ` (${s.livepix.status})` : ""}` : "não configurada";
+  $("#support-livepix").textContent = `🔒 LivePix ${pix}. As chaves só podem ser alteradas pelo próprio streamer.`;
+}
+
+function openSupport(button, p) {
+  if (state.rules && dirty() && !confirm("Descartar as mudanças não salvas?")) return;
+  return busy(button, async () => {
+    const r = await api.streamerRules(p.id);
+    state.support = { id: p.id, name: gameName(p), tiktok: r.account.tiktok, livepix: r.livepix };
+    state.rules = r.rules;
+    state.rules.gift ??= [];
+    state.rules.pix ??= [];
+    state.saved = JSON.stringify(state.rules);
+    renderSupportBar();
+    renderEditor();
+    $("#editor-card").hidden = false;
+    $("#editor-card").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+$("#support-exit").addEventListener("click", (ev) => {
+  if (dirty() && !confirm("Descartar as mudanças não salvas?")) return;
+  state.support = null;
+  renderSupportBar();
+  if (state.me.streamer) busy(ev.target, loadRules);
+  else { state.rules = null; $("#editor-card").hidden = true; $("#players-card").scrollIntoView({ behavior: "smooth" }); }
+});
+
 window.addEventListener("beforeunload", (e) => { if (state.rules && dirty()) e.preventDefault(); });
 
 // ---------------------------------------------------------------- início
 
 async function loadApp() {
+  state.support = null;
+  renderSupportBar();
   state.me = await api.me();
   renderMe();
   show("view-app");

@@ -122,6 +122,9 @@ export class Api {
     return this.request("POST", `/api/admin/players/${id}/${action}`, action === "reject" ? { body: { reason } } : {});
   }
   setStreamer(id, tiktok) { return this.request("PUT", `/api/admin/players/${id}/streamer`, { body: { tiktok } }); }
+  // modo suporte: eventos de um streamer (as chaves da LivePix não passam por aqui)
+  streamerRules(id) { return this.request("GET", `/api/admin/players/${id}/rules`); }
+  saveStreamerRules(id, rules) { return this.request("PUT", `/api/admin/players/${id}/rules`, { body: { rules } }); }
   setAdmin(id, admin) { return this.request("PUT", `/api/admin/players/${id}/admin`, { body: { admin } }); }
   deletePlayer(id) { return this.request("DELETE", `/api/admin/players/${id}`); }
 }
