@@ -368,12 +368,12 @@ function renderBank() {
   const d = bankState.data;
   const pending = d.items.filter((i) => i.status === "withdraw").length;
   $("#bank-usage").textContent = `${d.items.length}/${d.max_stacks} pilhas`;
-  const booth = d.booths[0];
-  $("#bank-where").textContent = booth
-    ? `Para guardar: entre sozinho na cabine do banco (x ${booth.x}, y ${booth.y}, z ${booth.z}) e coloque os itens no baú. `
-      + `Para retirar: marque aqui, clique em Retirar e entre na cabine. Os itens vão direto para o seu inventário.`
-    : "A cabine do banco ainda não foi colocada no mapa.";
-  if (pending) $("#bank-where").textContent += ` Você tem ${pending} pilha(s) esperando na cabine.`;
+  const places = d.chests.map((c) => `x ${c.x}, y ${c.y}, z ${c.z}`).join(" · ");
+  $("#bank-where").textContent = d.chests.length
+    ? `Para guardar: abra um baú do banco no jogo, coloque os itens na tela e feche. Para retirar: marque aqui, `
+      + `clique em Retirar e abra um baú do banco: os itens vão direto para o seu inventário. Baús do banco: ${places}.`
+    : "Ainda não há baús do banco no mapa.";
+  if (pending) $("#bank-where").textContent += ` Você tem ${pending} pilha(s) esperando: abra um baú do banco para receber.`;
 
   bankState.selected = new Set([...bankState.selected].filter((id) => d.items.some((i) => i.id === id)));
   const rows = d.items.map((it) => {
@@ -418,7 +418,7 @@ for (const [button, action] of [["#bank-withdraw", "withdraw"], ["#bank-cancel",
     bankState.selected.clear();
     await loadBank();
     flash(action === "withdraw"
-      ? `${r.changed} pilha(s) separadas. Entre na cabine do banco para receber no inventário.`
+      ? `${r.changed} pilha(s) separadas. Abra um baú do banco no jogo para receber no inventário.`
       : `Retirada cancelada: ${r.changed} pilha(s) voltaram para o banco.`);
   }).then(updateBankButtons));
 }
