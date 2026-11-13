@@ -451,28 +451,46 @@ function renderAction(tier, action, index) {
     h("button", { class: "btn ghost icon", type: "button", title: "Remover ação", "aria-label": "Remover ação", onclick: remove }, "✕"));
 }
 
+// Faixas abertas no editor (sobrevive aos re-renders)
+const openTiers = new WeakSet();
+
 function renderTier(tier, index, list) {
   const kind = state.kind;
   const c = state.catalog;
   const isPix = kind === "pix";
   const unit = isPix ? "R$" : "💎";
 
+  // Resumo no cabeçalho recolhível; acompanha a edição do nome e dos valores
+  const title = h("span", { class: "tier-title" });
+  const meta = h("span", { class: "tier-meta" });
+  const refresh = () => {
+    const fmt = (v) => (isPix ? `R$ ${reais(v ?? 0)}` : `${v ?? 0} 💎`);
+    const range = tier.max == null ? `a partir de ${fmt(tier.min)}` : `${fmt(tier.min)} até ${fmt(tier.max)}`;
+    const n = tier.actions.length;
+    title.textContent = tier.label || "Sem nome";
+    meta.textContent = `${range} · ${n} ${n === 1 ? "ação" : "ações"}${tier.mode === "random" && n > 1 ? " (sorteia uma)" : ""}`;
+  };
+  refresh();
+  const edited = () => { refresh(); markDirty(); };
+
   const valueInput = (label, key, optional) => isPix
     ? h("label", {}, `${label} (${unit})`, h("input", {
         inputmode: "decimal", value: reais(tier[key]), placeholder: optional ? "sem limite" : "0,00", required: !optional,
-        oninput: (e) => { tier[key] = cents(e.target.value); markDirty(); } }))
+        oninput: (e) => { tier[key] = cents(e.target.value); edited(); } }))
     : h("label", {}, `${label} (${unit})`, h("input", {
         type: "number", inputmode: "numeric", min: 1, value: tier[key] ?? "", placeholder: optional ? "sem limite" : "", required: !optional,
-        oninput: (e) => { tier[key] = e.target.value === "" ? null : Number(e.target.value); markDirty(); } }));
+        oninput: (e) => { tier[key] = e.target.value === "" ? null : Number(e.target.value); edited(); } }));
 
   const remove = () => {
     if (!confirm(`Remover a faixa "${tier.label}"?`)) return;
     list.splice(index, 1); renderEditor(); markDirty();
   };
 
-  return h("div", { class: "tier", style: `--c:${TIER_COLORS[Math.min(index, 3)]}` },
+  return h("details", { class: "tier", style: `--c:${TIER_COLORS[Math.min(index, 3)]}`, open: openTiers.has(tier),
+      ontoggle: (e) => (e.target.open ? openTiers.add(tier) : openTiers.delete(tier)) },
+    h("summary", {}, h("span", { class: "tier-sum" }, title, meta)),
     h("div", { class: "tier-head" },
-      h("label", {}, "Nome da faixa", h("input", { value: tier.label, maxlength: 24, oninput: (e) => { tier.label = e.target.value; markDirty(); } })),
+      h("label", {}, "Nome da faixa", h("input", { value: tier.label, maxlength: 24, oninput: (e) => { tier.label = e.target.value; edited(); } })),
       valueInput("De", "min", false),
       valueInput("Até", "max", true),
       h("button", { class: "btn ghost icon danger", type: "button", title: "Remover faixa", "aria-label": "Remover faixa", onclick: remove }, "🗑")),
@@ -526,6 +544,7 @@ $("#add-tier").addEventListener("click", () => {
   if (last && last.max == null) last.max = start - 1;
   list.push({ id: `f${Date.now() % 100000}`, label: `Faixa ${list.length + 1}`, min: start, max: null,
     announce: "title", sound: "none", mode: "all", actions: [newAction("spawn_mob")] });
+  openTiers.add(list[list.length - 1]);
   renderEditor();
 });
 
