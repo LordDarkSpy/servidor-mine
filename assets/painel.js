@@ -217,16 +217,16 @@ function addressRow(label, value) {
 function renderServers(servers, myEdition) {
   $("#servers-card").hidden = !servers?.java?.address;
   if (!servers?.java?.address) return;
-  // Java: o servidor aceita launcher pirata, então quem entra prova que é dono da conta do site
+  // Java: o servidor aceita launcher pirata, então a entrada é liberada aqui antes de conectar
   const unlock = h("button", { type: "button", class: "btn small" }, "🔓 Liberar entrada");
   unlock.addEventListener("click", () => busy(unlock, async () => {
     const r = await api.gameLogin();
-    flash(`Entrada liberada por ${Math.round(r.seconds / 60)} min: entre no jogo como ${r.name} (se já estiver lá esperando, entra sozinho em segundos).`);
+    flash(`Entrada liberada: conecte no servidor como ${r.name} em até ${Math.round(r.seconds / 60)} min (vale uma entrada).`);
   }));
   const java = h("div", {}, h("h3", {}, "☕ Java (PC)"), addressRow("Endereço", servers.java.address),
     h("ol", { class: "hint" }, h("li", {}, "Versão 26.3 → Multijogador → Adicionar servidor."), h("li", {}, "Cole o endereço (sem porta) e entre."),
       h("li", {}, "Vale launcher original ou pirata (TLauncher etc.), com o mesmo nick do cadastro."),
-      h("li", {}, "Ao entrar você fica parado até fazer login: clique em Liberar entrada aqui ou digite /login <senha do site> no jogo.")),
+      h("li", {}, "Antes de cada entrada, clique em Liberar entrada aqui. Sem isso o servidor recusa a conexão. Vale 5 min e uma entrada.")),
     myEdition === "java" ? h("div", { class: "row" }, unlock) : null);
   const bedrock = h("div", {}, h("h3", {}, "📱 Bedrock"), addressRow("Endereço", servers.bedrock.address), addressRow("Porta", servers.bedrock.port),
     h("ol", { class: "hint" }, h("li", {}, "Jogar → Servidores → Adicionar servidor."), h("li", {}, "Endereço e porta vão em campos separados."),
