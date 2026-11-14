@@ -137,6 +137,7 @@ export class Api {
   devState() { return this.request("GET", "/api/dev/state"); }
   devPower(action) { return this.request("POST", `/api/dev/server/${action}`); }
   devAction(body) { return this.request("POST", "/api/dev/action", { body }); }
+  devSimulate(body) { return this.request("POST", "/api/dev/simulate", { body }); }
   devConsole(command) { return this.request("POST", "/api/dev/console", { body: { command } }); }
   devPosition(player) { return this.request("GET", `/api/dev/position/${encodeURIComponent(player)}`); }
   devAddZone(zone) { return this.request("POST", "/api/dev/zones", { body: zone }); }

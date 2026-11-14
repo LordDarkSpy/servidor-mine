@@ -208,6 +208,22 @@
             <datalist id="dev-mobs"></datalist>
           </details>
 
+          <details class="tier dev-box dev-wide" data-fold="sim" style="--c: #eab308">
+            <summary><span class="tier-sum"><span class="tier-title">Simular evento de live</span><span class="tier-meta">Doação de mentira para testar qualquer evento em quem está online</span></span></summary>
+            <form id="dev-sim" class="dev-form sim-form">
+              <label>Para quem<select name="player"></select></label>
+              <label>Doação<select name="kind"><option value="gift">Presente do TikTok</option><option value="pix">Pix</option></select></label>
+              <label><span data-sim-unit>Valor (💎)</span><input name="value" inputmode="decimal" value="100" required></label>
+              <label>Quem mandou<input name="donor" maxlength="24" value="Doador de teste"></label>
+              <label><span data-sim-text>Presente</span><input name="text" maxlength="80" placeholder="Rosa"></label>
+              <label>O que roda<select name="mode"><option value="actions">Ações que eu escolher</option><option value="tiers">Faixas de um streamer</option></select></label>
+              <label data-sim-streamer hidden>Streamer<select name="streamer"></select></label>
+            </form>
+            <div id="dev-sim-actions"></div>
+            <p class="hint" id="dev-sim-hint"></p>
+            <div class="row dev-actions"><button class="btn small" type="submit" form="dev-sim" id="dev-sim-send">Enviar evento</button></div>
+          </details>
+
           <details class="tier dev-box dev-wide" data-fold="zones" style="--c: #ef4444">
             <summary><span class="tier-sum"><span class="tier-title">Zonas protegidas</span><span class="tier-meta" id="dev-zone-count">Áreas onde ninguém quebra nem constrói</span></span></summary>
             <p class="hint">Ninguém quebra nem constrói no quadrado de "raio" blocos em volta do ponto (na altura toda). Explosões, fogo, pistões e o buraco dos eventos também não afetam. Vale até para admin/DEV: só no <b>modo criativo</b> quem tem permissão consegue construir lá.</p>

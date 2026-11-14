@@ -725,6 +725,9 @@ function renderDev() {
   fillSelect($("#dev-player"), d.players, d.players.length ? null : "(ninguém online)");
   fillSelect($("#dev-tp").dest, d.players);
   fillSelect($("#dev-msg").to, d.players, "Todos (aviso no chat)");
+  fillSelect($("#dev-sim").player, d.players, d.players.length ? null : "(ninguém online)");
+  fillSelect($("#dev-sim").streamer, d.streamers.map((s) => "@" + s), d.streamers.length ? null : "(ninguém com faixas)");
+  if (!sim.tier) renderSim();   // só na 1ª vez: o refresh não pode apagar o que está sendo editado
 
   $("#dev-zones").replaceChildren(...(d.zones.length ? d.zones.map((z) => {
     const del = h("button", { type: "button", class: "btn ghost small danger" }, "Remover");
@@ -848,6 +851,56 @@ $("#dev-zone").addEventListener("submit", (ev) => {
   });
 });
 
+// simular evento de live: doação de mentira com as ações escolhidas aqui ou as faixas de um streamer
+const sim = { tier: null };
+function renderSim() {
+  const c = state.catalog;
+  if (!c) return;
+  sim.tier ??= { announce: "title", sound: "none", mode: "all", actions: [newAction("spawn_mob")] };
+  const f = $("#dev-sim");
+  const pix = f.kind.value === "pix";
+  const tiers = f.mode.value === "tiers";
+  f.querySelector("[data-sim-unit]").textContent = pix ? "Valor (R$)" : "Valor (💎)";
+  f.querySelector("[data-sim-text]").textContent = pix ? "Mensagem do Pix" : "Presente";
+  f.text.placeholder = pix ? "Mensagem (opcional)" : "Rosa";
+  f.querySelector("[data-sim-streamer]").hidden = !tiers;
+  const t = sim.tier;
+  $("#dev-sim-actions").replaceChildren(...(tiers ? [] : [
+    h("div", { class: "tier-opts" },
+      select("Aviso", c.announce, t.announce, (v) => (t.announce = v)),
+      select("Som", c.sounds, t.sound, (v) => (t.sound = v)),
+      select("Ações", [{ id: "all", name: "Executar todas" }, { id: "random", name: "Sortear uma" }], t.mode, (v) => { t.mode = v; renderSim(); })),
+    h("div", { class: "actions" }, t.actions.map((a, i) => renderAction(t, a, i, renderSim))),
+    t.actions.length < c.limits.actions_per_tier
+      ? h("button", { class: "btn ghost small add-action", type: "button",
+          onclick: () => { t.actions.push(newAction("spawn_mob")); renderSim(); } }, "+ Ação")
+      : null,
+  ]));
+  $("#dev-sim-hint").textContent = tiers
+    ? "Roda as faixas que o streamer salvou para esse valor (como se a doação tivesse chegado na live dele), mas no jogador escolhido."
+    : "Roda as ações acima no jogador escolhido, com o aviso na tela igual a uma doação de verdade. No duelo, se não houver outro jogador online, a luta é contra o bot de teste.";
+}
+
+for (const name of ["kind", "mode"]) $("#dev-sim")[name].addEventListener("change", (ev) => {
+  if (name === "kind") ev.target.form.value.value = ev.target.value === "pix" ? "5,00" : "100";
+  renderSim();
+});
+
+$("#dev-sim").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  busy($("#dev-sim-send"), async () => {
+    if (!f.player.value) throw new Error("Ninguém online para receber o evento.");
+    const pix = f.kind.value === "pix";
+    const value = pix ? cents(f.value.value) : Number(f.value.value);
+    if (!value || value < 1) throw new Error("Informe um valor maior que zero.");
+    if (!sim.tier.actions.length && f.mode.value === "actions") throw new Error("Adicione pelo menos uma ação.");
+    const r = await api.devSimulate({ player: f.player.value, kind: f.kind.value, value, donor: f.donor.value, text: f.text.value,
+      mode: f.mode.value, streamer: f.streamer.value.replace(/^@/, ""), tier: sim.tier });
+    flash(`Evento enviado para ${r.player}: ${r.tiers.join(", ")} (${r.queued} ${r.queued === 1 ? "comando" : "comandos"} na fila).`);
+  });
+});
+
 $("#dev-console").addEventListener("submit", (ev) => {
   ev.preventDefault();
   busy(ev.submitter, async () => devOut((await api.devConsole(ev.target.command.value)).response));
@@ -916,14 +969,14 @@ function select(label, options, value, onchange) {
       options.map((o) => h("option", { value: o.id, selected: o.id === value }, o.name))));
 }
 
-function actionParams(action, gear) {
+function actionParams(action, gear, redraw = renderEditor) {
   const c = state.catalog;
   const limitOf = (list, id) => c[list].find((x) => x.id === id)?.max ?? 1;
   switch (action.type) {
     case "spawn_mob":
       return [
         h("label", { class: "wide" }, "Mob", h("select", {
-          onchange: (e) => { action.mob = e.target.value; action.amount = Math.min(action.amount, limitOf("mobs", action.mob)); renderEditor(); markDirty(); },
+          onchange: (e) => { action.mob = e.target.value; action.amount = Math.min(action.amount, limitOf("mobs", action.mob)); redraw(); markDirty(); },
         }, c.mobs.map((m) => h("option", { value: m.id, selected: m.id === action.mob }, `${m.name} (máx. ${m.max})`)))),
         numberInput("Qtd.", action.amount, { max: limitOf("mobs", action.mob), onchange: (v) => (action.amount = v) }),
       ];
@@ -963,7 +1016,7 @@ function actionParams(action, gear) {
             action.amount = Math.min(action.amount, next.max);
             if (!next.bow) action.weapons = action.weapons.filter((w) => w !== "bow");
             if (!action.weapons.length) action.weapons = ["sword"];
-            renderEditor(); markDirty();
+            redraw(); markDirty();
           },
         }, c.armed_mobs.map((m) => h("option", { value: m.id, selected: m.id === mob.id }, `${m.name} (máx. ${m.max})`)))),
         numberInput("Qtd.", action.amount, { max: mob.max, onchange: (v) => (action.amount = v) }),
@@ -987,8 +1040,8 @@ function actionParams(action, gear) {
   }
 }
 
-function renderAction(tier, action, index) {
-  const remove = () => { tier.actions.splice(index, 1); renderEditor(); markDirty(); };
+function renderAction(tier, action, index, redraw = renderEditor) {
+  const remove = () => { tier.actions.splice(index, 1); redraw(); markDirty(); };
   const gear = action.type === "give_item" && gearChooser({
     item: action.item, enchantments: action.enchantments, common: state.catalog.items,
     onchange: (item, enchants, itemChanged) => {
@@ -997,14 +1050,14 @@ function renderAction(tier, action, index) {
       if (itemChanged) {
         const max = splitGear(item) ? state.catalog.equipment_max : state.catalog.items.find((i) => i.id === item)?.max ?? 1;
         action.amount = Math.min(action.amount ?? 1, max);
-        renderEditor();
+        redraw();
       }
       markDirty();
     },
   });
   return h("div", { class: "action" },
-    select("Ação", state.catalog.actions, action.type, (v) => { tier.actions[index] = newAction(v); renderEditor(); }),
-    h("div", { class: "params" }, actionParams(action, gear)),
+    select("Ação", state.catalog.actions, action.type, (v) => { tier.actions[index] = newAction(v); redraw(); }),
+    h("div", { class: "params" }, actionParams(action, gear, redraw)),
     tier.mode === "random"
       ? numberInput("Chance", action.weight ?? 1, { max: state.catalog.limits.weight_max, cls: "weight", onchange: (v) => (action.weight = v) })
       : h("span"),
