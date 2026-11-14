@@ -304,6 +304,20 @@ section.dev-box { background: var(--bg); border: 1px solid var(--border); border
 .weapons .check input { width: 16px; height: 16px; margin: 0; }
 .params .wide-all { grid-column: 1 / -1; margin: 0; }
 
+/* abas do painel: só os cartões da aba escolhida aparecem */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.tabs button { flex: 1 1 auto; min-width: 110px; padding: 9px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--card, #fff); color: var(--text, inherit); box-shadow: 0 1px 3px rgba(0, 0, 0, .15); }
+#view-app[data-active="jogo"] [data-tab]:not([data-tab="jogo"]),
+#view-app[data-active="streamer"] [data-tab]:not([data-tab="streamer"]),
+#view-app[data-active="dev"] [data-tab]:not([data-tab="dev"]),
+#view-app[data-active="admin"] [data-tab]:not([data-tab="admin"]) { display: none !important; }
+#minimap-card { margin-bottom: 16px; }
+.guide { padding-left: 20px; display: grid; gap: 6px; }
+.cmd-group .guide { list-style: decimal; padding-left: 22px; }
+.cmd-group .guide li { display: list-item; }
+.guide a { font-weight: 600; }
+
 /* comandos do jogo */
 #commands-card { margin-bottom: 16px; }
 #commands-search { width: 100%; margin: 6px 0 10px; }

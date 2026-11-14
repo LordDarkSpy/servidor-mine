@@ -184,6 +184,7 @@ function renderMe() {
 
   $("#players-card").hidden = !(approved && me.admin);
   $("#editor-card").hidden = !(approved && (s || state.support));
+  renderTabs(approved, me);
 
   clearInterval(refreshTimer);
   if (me.status === "pending") refreshTimer = setInterval(refreshAccount, 30000);
@@ -201,6 +202,29 @@ async function refreshAccount() {
     if (e.status === 401) showAuth("Sua sessão expirou. Entre de novo.");
   }
 }
+
+// ---------------------------------------------------------------- abas (Jogo, Streamer, DEV, Admin)
+
+const TAB_KEY = "painel-aba";
+
+function renderTabs(approved, me) {
+  const allowed = { jogo: true, streamer: !!me.streamer, dev: !!me.dev, admin: !!me.admin };
+  $("#app-tabs").hidden = !approved || Object.values(allowed).filter(Boolean).length < 2;
+  document.querySelectorAll("#app-tabs [data-go]").forEach((b) => (b.hidden = !allowed[b.dataset.go]));
+  let current = $("#view-app").dataset.active;
+  if (!current) {
+    try { current = localStorage.getItem(TAB_KEY); } catch {}
+  }
+  setTab(approved && allowed[current] ? current : "jogo");
+}
+
+function setTab(tab) {
+  $("#view-app").dataset.active = tab;
+  document.querySelectorAll("#app-tabs [data-go]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.go === tab)));
+  try { localStorage.setItem(TAB_KEY, tab); } catch {}
+}
+
+document.querySelectorAll("#app-tabs [data-go]").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.go)));
 
 // ---------------------------------------------------------------- endereço do servidor
 
@@ -1246,6 +1270,7 @@ function openSupport(button, p) {
     state.saved = JSON.stringify(state.rules);
     renderSupportBar();
     renderEditor();
+    $("#editor-card").dataset.tab = "admin";
     $("#editor-card").hidden = false;
     $("#editor-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -1255,6 +1280,7 @@ $("#support-exit").addEventListener("click", (ev) => {
   if (dirty() && !confirm("Descartar as mudanças não salvas?")) return;
   state.support = null;
   renderSupportBar();
+  $("#editor-card").dataset.tab = "streamer";
   if (state.me.streamer) busy(ev.target, loadRules);
   else { state.rules = null; $("#editor-card").hidden = true; $("#players-card").scrollIntoView({ behavior: "smooth" }); }
 });

@@ -87,7 +87,14 @@
     <section id="view-app" hidden>
       <div id="account-state"></div>
 
-      <article class="card" id="character-card" hidden>
+      <nav class="tabs" id="app-tabs" role="tablist" hidden>
+        <button type="button" role="tab" data-go="jogo">🎮 Jogo</button>
+        <button type="button" role="tab" data-go="streamer" hidden>📺 Streamer</button>
+        <button type="button" role="tab" data-go="dev" hidden>⚙ DEV</button>
+        <button type="button" role="tab" data-go="admin" hidden>🛡 Admin</button>
+      </nav>
+
+      <article class="card" id="character-card" data-tab="jogo" hidden>
         <h2>Seu personagem</h2>
         <p class="hint">Nome que aparece no chat e na lista de jogadores (Tab). Sua conta Mojang não muda.</p>
         <form id="form-character" class="inline">
@@ -96,12 +103,12 @@
         </form>
       </article>
 
-      <article class="card" id="servers-card" hidden>
+      <article class="card" id="servers-card" data-tab="jogo" hidden>
         <h2>Como entrar no servidor</h2>
         <div id="servers" class="servers"></div>
       </article>
 
-      <article class="card" id="bank-card" hidden>
+      <article class="card" id="bank-card" data-tab="jogo" hidden>
         <div class="bank-head">
           <h2>Banco de itens</h2>
           <span id="bank-usage" class="badge"></span>
@@ -121,7 +128,35 @@
         </details>
       </article>
 
-      <article class="card" id="commands-card" hidden>
+      <article class="card" id="minimap-card" data-tab="jogo">
+        <div class="bank-head">
+          <h2>🗺 Minimapa (opcional)</h2>
+        </div>
+        <p class="hint">O jogo não tem minimapa e o servidor não consegue instalar mods no seu computador. Para ter um minimapa no canto da tela, instale o <b>JourneyMap</b>, que o servidor já reconhece. Só funciona no Java (PC).</p>
+        <details class="cmd-group" open>
+          <summary>Launcher oficial do Minecraft</summary>
+          <ol class="hint guide">
+            <li>Baixe o instalador do Fabric em <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">fabricmc.net/use/installer</a> e abra. Escolha <b>Client</b>, versão <b>26.3</b> e clique em Install.</li>
+            <li>Baixe os dois arquivos para a versão 26.3, versão Fabric:
+              <a href="https://modrinth.com/mod/journeymap/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">JourneyMap</a> e
+              <a href="https://modrinth.com/mod/fabric-api/versions?g=26.3" target="_blank" rel="noopener">Fabric API</a>.</li>
+            <li>Aperte <code>Win + R</code>, digite <code>%appdata%.minecraft</code> e abra a pasta <code>mods</code> (crie se não existir). Coloque os dois arquivos .jar nela.</li>
+            <li>No launcher, escolha o perfil <b>fabric-loader-26.3</b> e jogue.</li>
+          </ol>
+        </details>
+        <details class="cmd-group">
+          <summary>TLauncher</summary>
+          <ol class="hint guide">
+            <li>Na lista de versões, escolha <b>Fabric 26.3</b> e entre uma vez no jogo (ele instala sozinho). Feche.</li>
+            <li>Baixe <a href="https://modrinth.com/mod/journeymap/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">JourneyMap</a> e <a href="https://modrinth.com/mod/fabric-api/versions?g=26.3" target="_blank" rel="noopener">Fabric API</a> (26.3, Fabric).</li>
+            <li>No TLauncher, clique no ícone de pasta (abre a pasta do jogo), entre em <code>mods</code> e coloque os dois arquivos.</li>
+            <li>Abra o jogo de novo com <b>Fabric 26.3</b>.</li>
+          </ol>
+        </details>
+        <p class="hint">Teclas do JourneyMap: <code>J</code> abre o mapa grande, <code>B</code> cria um ponto marcado. O minimapa aparece no canto sozinho.</p>
+      </article>
+
+      <article class="card" id="commands-card" data-tab="jogo" hidden>
         <div class="bank-head">
           <h2>📜 Seus comandos no jogo</h2>
           <span id="commands-count" class="badge"></span>
@@ -131,7 +166,7 @@
         <div id="commands-list" class="commands-list"></div>
       </article>
 
-      <article class="card" id="duel-card" hidden>
+      <article class="card" id="duel-card" data-tab="jogo" hidden>
         <div class="bank-head">
           <h2>🏆 Ranking de duelos</h2>
         </div>
@@ -143,7 +178,7 @@
         </details>
       </article>
 
-      <article class="card" id="dev-card" hidden>
+      <article class="card" id="dev-card" data-tab="dev" hidden>
         <div class="bank-head">
           <h2>Painel DEV</h2>
           <span id="dev-status" class="badge"></span>
@@ -270,7 +305,7 @@
         </div>
       </article>
 
-      <div class="cards" id="streamer-cards" hidden>
+      <div class="cards" id="streamer-cards" data-tab="streamer" hidden>
         <article class="card">
           <h2>Sua live</h2>
           <dl class="facts">
@@ -304,7 +339,7 @@
         </article>
       </div>
 
-      <article class="card" id="players-card" hidden>
+      <article class="card" id="players-card" data-tab="admin" hidden>
         <div class="editor-head">
           <div>
             <h2>Contas</h2>
@@ -319,7 +354,7 @@
         <div id="player-list" class="player-list"></div>
       </article>
 
-      <article class="card editor-card" id="editor-card" hidden>
+      <article class="card editor-card" id="editor-card" data-tab="streamer" hidden>
         <div id="support-bar" class="support-bar" hidden>
           <div>
             <b id="support-title"></b>
