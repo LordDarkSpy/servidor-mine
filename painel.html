@@ -121,6 +121,16 @@
         </details>
       </article>
 
+      <article class="card" id="commands-card" hidden>
+        <div class="bank-head">
+          <h2>📜 Seus comandos no jogo</h2>
+          <span id="commands-count" class="badge"></span>
+        </div>
+        <p class="hint">Só aparecem os comandos que a sua conta pode usar. Digite no chat do jogo (tecla T).</p>
+        <input id="commands-search" type="search" placeholder="Procurar comando…" autocomplete="off">
+        <div id="commands-list" class="commands-list"></div>
+      </article>
+
       <article class="card" id="duel-card" hidden>
         <div class="bank-head">
           <h2>🏆 Ranking de duelos</h2>
@@ -159,6 +169,15 @@
               <button class="btn ghost small" type="button" data-act="rain">🌧️ Chuva</button>
               <button class="btn ghost small" type="button" data-act="thunder">⛈️ Tempestade</button>
             </div>
+          </section>
+
+          <section class="dev-box">
+            <h3>Entrada no Java</h3>
+            <form id="dev-settings" class="dev-form">
+              <label>Liberação vale (horas)<input name="login_hours" type="number" min="1" max="720" required></label>
+              <button class="btn small" type="submit">Salvar</button>
+            </form>
+            <p class="hint">Depois que o jogador clica em "Liberar entrada", ele entra quantas vezes quiser nesse tempo.</p>
           </section>
 
           <section class="dev-box">

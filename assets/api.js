@@ -138,6 +138,9 @@ export class Api {
   devPower(action) { return this.request("POST", `/api/dev/server/${action}`); }
   devAction(body) { return this.request("POST", "/api/dev/action", { body }); }
   gameLogin() { return this.request("POST", "/api/account/game-login"); }
+  myCommands() { return this.request("GET", "/api/me/commands"); }
+  gameLoginState() { return this.request("GET", "/api/account/game-login"); }
+  devSettings(body) { return this.request("PUT", "/api/dev/settings", { body }); }
   devSimulate(body) { return this.request("POST", "/api/dev/simulate", { body }); }
   devConsole(command) { return this.request("POST", "/api/dev/console", { body: { command } }); }
   devPosition(player) { return this.request("GET", `/api/dev/position/${encodeURIComponent(player)}`); }

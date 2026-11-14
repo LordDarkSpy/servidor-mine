@@ -304,6 +304,17 @@ section.dev-box { background: var(--bg); border: 1px solid var(--border); border
 .weapons .check input { width: 16px; height: 16px; margin: 0; }
 .params .wide-all { grid-column: 1 / -1; margin: 0; }
 
+/* comandos do jogo */
+#commands-card { margin-bottom: 16px; }
+#commands-search { width: 100%; margin: 6px 0 10px; }
+.commands-list { display: grid; gap: 6px; }
+.cmd-group { border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; background: var(--bg); }
+.cmd-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.cmd-group ul { list-style: none; padding: 0; margin: 4px 0 6px; display: grid; gap: 6px; }
+.cmd-group li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.cmd-group code { font-size: 13px; overflow-wrap: anywhere; }
+.cmd-group li span { color: var(--muted); font-size: 13px; }
+
 /* ranking de duelos */
 #duel-card { margin-bottom: 16px; }
 .duel-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }

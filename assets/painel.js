@@ -214,20 +214,33 @@ function addressRow(label, value) {
   return h("div", { class: "addr" }, h("span", { class: "addr-label" }, label), h("code", {}, value), copy);
 }
 
+/** Data e hora curtas (hoje: só a hora). */
+function timeBR(iso) {
+  const d = new Date(iso);
+  const today = d.toDateString() === new Date().toDateString();
+  return d.toLocaleString("pt-BR", today ? { hour: "2-digit", minute: "2-digit" } : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
 function renderServers(servers, myEdition) {
   $("#servers-card").hidden = !servers?.java?.address;
   if (!servers?.java?.address) return;
   // Java: o servidor aceita launcher pirata, então a entrada é liberada aqui antes de conectar
   const unlock = h("button", { type: "button", class: "btn small" }, "🔓 Liberar entrada");
+  const until = h("span", { class: "hint" });
+  const showUntil = (r) => {
+    until.textContent = r.until ? `✅ Liberada até ${timeBR(r.until)}` : `Liberação vale ${r.hours} h`;
+  };
   unlock.addEventListener("click", () => busy(unlock, async () => {
     const r = await api.gameLogin();
-    flash(`Entrada liberada: conecte no servidor como ${r.name} em até ${Math.round(r.seconds / 60)} min (vale uma entrada).`);
+    showUntil(r);
+    flash(`Entrada liberada até ${timeBR(r.until)}: entre como ${r.name} quantas vezes quiser nesse tempo.`);
   }));
+  if (myEdition === "java") api.gameLoginState().then(showUntil).catch(() => {});
   const java = h("div", {}, h("h3", {}, "☕ Java (PC)"), addressRow("Endereço", servers.java.address),
     h("ol", { class: "hint" }, h("li", {}, "Versão 26.3 → Multijogador → Adicionar servidor."), h("li", {}, "Cole o endereço (sem porta) e entre."),
       h("li", {}, "Vale launcher original ou pirata (TLauncher etc.), com o mesmo nick do cadastro."),
-      h("li", {}, "Antes de cada entrada, clique em Liberar entrada aqui. Sem isso o servidor recusa a conexão. Vale 5 min e uma entrada.")),
-    myEdition === "java" ? h("div", { class: "row" }, unlock) : null);
+      h("li", {}, "Antes de entrar, clique em Liberar entrada aqui. Sem isso o servidor recusa a conexão. Depois de liberar, você entra à vontade por várias horas.")),
+    myEdition === "java" ? h("div", { class: "row" }, unlock, until) : null);
   const bedrock = h("div", {}, h("h3", {}, "📱 Bedrock"), addressRow("Endereço", servers.bedrock.address), addressRow("Porta", servers.bedrock.port),
     h("ol", { class: "hint" }, h("li", {}, "Jogar → Servidores → Adicionar servidor."), h("li", {}, "Endereço e porta vão em campos separados."),
       h("li", {}, "Console: use um app como o BedrockTogether no celular, na mesma rede.")));
@@ -684,6 +697,33 @@ function gearChooser({ item, enchantments, common, onchange }) {
   return { fields, picker };
 }
 
+// ---------------------------------------------------------------- comandos do jogo
+
+const commandState = { categories: [] };
+
+function renderCommands() {
+  const q = $("#commands-search").value.trim().toLowerCase();
+  let total = 0;
+  const groups = commandState.categories.map((c) => {
+    const rows = c.commands.filter((x) => !q || (x.usage + " " + x.text).toLowerCase().includes(q));
+    total += rows.length;
+    if (!rows.length) return null;
+    return h("details", { class: "cmd-group", open: q ? true : null },
+      h("summary", {}, `${c.category} `, h("span", { class: "hint" }, `(${rows.length})`)),
+      h("ul", {}, ...rows.map((x) => h("li", {}, h("code", {}, x.usage), h("span", {}, x.text)))));
+  }).filter(Boolean);
+  $("#commands-list").replaceChildren(...(groups.length ? groups : [h("p", { class: "hint" }, "Nenhum comando encontrado.")]));
+  $("#commands-count").textContent = `${total} comando(s)`;
+}
+
+async function loadCommands() {
+  commandState.categories = (await api.myCommands()).categories;
+  renderCommands();
+  $("#commands-card").hidden = false;
+}
+
+$("#commands-search").addEventListener("input", renderCommands);
+
 // ---------------------------------------------------------------- ranking de duelos
 
 const duelState = { timer: null };
@@ -734,6 +774,8 @@ function renderDev() {
   fillSelect($("#dev-player"), d.players, d.players.length ? null : "(ninguém online)");
   fillSelect($("#dev-tp").dest, d.players);
   fillSelect($("#dev-msg").to, d.players, "Todos (aviso no chat)");
+  const hours = $("#dev-settings").login_hours;
+  if (document.activeElement !== hours) hours.value = d.login_hours;
   fillSelect($("#dev-sim").player, d.players, d.players.length ? null : "(ninguém online)");
   fillSelect($("#dev-sim").streamer, d.streamers.map((s) => "@" + s), d.streamers.length ? null : "(ninguém com faixas)");
   if (!sim.tier) renderSim();   // só na 1ª vez: o refresh não pode apagar o que está sendo editado
@@ -758,6 +800,14 @@ function renderDev() {
   clearInterval(devState.timer);
   devState.timer = setInterval(() => { if (!$("#dev-card").hidden) loadDev().catch(() => {}); }, d.busy || !up ? 4000 : 15000);
 }
+
+$("#dev-settings").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  busy(ev.submitter, async () => {
+    const r = await api.devSettings({ login_hours: Number(ev.target.login_hours.value) });
+    flash(`Liberação de entrada agora vale ${r.login_hours} h (vale para as próximas liberações).`);
+  });
+});
 
 async function loadDev() {
   devState.data = await api.devState();
@@ -1221,6 +1271,7 @@ async function loadApp() {
   show("view-app");
   const approved = state.me.status === "approved";
   if (approved) await loadBank();
+  if (approved) await loadCommands().catch(() => {});
   if (approved) await loadDuels().catch(() => {});
   if (approved && state.me.dev) await loadDev();
   if (approved && state.me.admin) await loadPlayers();
