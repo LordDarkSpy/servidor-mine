@@ -130,30 +130,33 @@
 
       <article class="card" id="minimap-card" data-tab="jogo">
         <div class="bank-head">
-          <h2>🗺 Minimapa (opcional)</h2>
+          <h2>🧩 Modpack do servidor (recomendado)</h2>
         </div>
-        <p class="hint">O jogo não tem minimapa e o servidor não consegue instalar mods no seu computador. Para ter um minimapa no canto da tela, instale o <b>JourneyMap</b>, que o servidor já reconhece. Só funciona no Java (PC).</p>
+        <p class="hint">Dá para jogar sem mods, mas com o modpack você ganha <b>minimapa</b> (JourneyMap), <b>chat de voz por proximidade</b> (Simple Voice Chat) e <b>emotes</b> (Emotecraft). Só funciona no Java (PC), versão <b>26.3</b> com <b>Fabric</b>.</p>
+        <p><a class="btn" href="pack/servidor-mine.mrpack" download>⬇ Baixar modpack (.mrpack)</a></p>
         <details class="cmd-group" open>
-          <summary>Launcher oficial do Minecraft</summary>
+          <summary>Modrinth App / Prism Launcher / CurseForge (mais fácil)</summary>
           <ol class="hint guide">
-            <li>Baixe o instalador do Fabric em <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">fabricmc.net/use/installer</a> e abra. Escolha <b>Client</b>, versão <b>26.3</b> e clique em Install.</li>
-            <li>Baixe os dois arquivos para a versão 26.3, versão Fabric:
-              <a href="https://modrinth.com/mod/journeymap/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">JourneyMap</a> e
-              <a href="https://modrinth.com/mod/fabric-api/versions?g=26.3" target="_blank" rel="noopener">Fabric API</a>.</li>
-            <li>Aperte <code>Win + R</code>, digite <code>%appdata%.minecraft</code> e abra a pasta <code>mods</code> (crie se não existir). Coloque os dois arquivos .jar nela.</li>
-            <li>No launcher, escolha o perfil <b>fabric-loader-26.3</b> e jogue.</li>
+            <li>Baixe o arquivo <code>servidor-mine.mrpack</code> no botão acima.</li>
+            <li>Abra o launcher e importe o arquivo. No <a href="https://modrinth.com/app" target="_blank" rel="noopener">Modrinth App</a>, arraste o arquivo para a janela. No Prism, use <b>Adicionar instância → Importar</b>. Ele baixa o Fabric e todos os mods sozinho.</li>
+            <li>Jogue pela instância <b>Servidor Mine</b>.</li>
           </ol>
         </details>
         <details class="cmd-group">
-          <summary>TLauncher</summary>
+          <summary>Launcher oficial ou TLauncher (instalação manual)</summary>
           <ol class="hint guide">
-            <li>Na lista de versões, escolha <b>Fabric 26.3</b> e entre uma vez no jogo (ele instala sozinho). Feche.</li>
-            <li>Baixe <a href="https://modrinth.com/mod/journeymap/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">JourneyMap</a> e <a href="https://modrinth.com/mod/fabric-api/versions?g=26.3" target="_blank" rel="noopener">Fabric API</a> (26.3, Fabric).</li>
-            <li>No TLauncher, clique no ícone de pasta (abre a pasta do jogo), entre em <code>mods</code> e coloque os dois arquivos.</li>
-            <li>Abra o jogo de novo com <b>Fabric 26.3</b>.</li>
+            <li><b>Launcher oficial:</b> baixe o instalador em <a href="https://fabricmc.net/use/installer/" target="_blank" rel="noopener">fabricmc.net/use/installer</a>, escolha <b>Client</b>, versão <b>26.3</b> e clique em Install. <b>TLauncher:</b> escolha <b>Fabric 26.3</b> na lista e entre uma vez no jogo.</li>
+            <li>Baixe a versão <b>26.3 / Fabric</b> de cada mod:
+              <a href="https://modrinth.com/mod/fabric-api/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">Fabric API</a>,
+              <a href="https://modrinth.com/mod/journeymap/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">JourneyMap</a>,
+              <a href="https://modrinth.com/mod/simple-voice-chat/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">Simple Voice Chat</a>,
+              <a href="https://modrinth.com/mod/emotecraft/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">Emotecraft</a> e
+              <a href="https://modrinth.com/mod/player-animation-library/versions?g=26.3&amp;l=fabric" target="_blank" rel="noopener">Player Animation Library</a> (necessário para o Emotecraft).</li>
+            <li>Coloque os .jar na pasta <code>mods</code>. No launcher oficial: <code>Win + R</code> → <code>%appdata%\.minecraft</code>. No TLauncher: ícone de pasta. Crie a pasta <code>mods</code> se ela não existir.</li>
+            <li>Abra o jogo com o perfil <b>Fabric 26.3</b>.</li>
           </ol>
         </details>
-        <p class="hint">Teclas do JourneyMap: <code>J</code> abre o mapa grande, <code>B</code> cria um ponto marcado. O minimapa aparece no canto sozinho.</p>
+        <p class="hint">Teclas: <code>J</code> abre o mapa grande, <code>B</code> marca um ponto, <code>V</code> abre o chat de voz (segure <code>Caps Lock</code> para falar; dá para trocar para microfone sempre aberto). A tecla de emotes fica em <b>Opções → Controles → Emotecraft</b>; se ela bater com o <code>B</code> do JourneyMap, troque uma das duas.</p>
       </article>
 
       <article class="card" id="commands-card" data-tab="jogo" hidden>

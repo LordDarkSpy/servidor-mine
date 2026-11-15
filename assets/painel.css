@@ -139,7 +139,7 @@ input:user-invalid { border-color: var(--danger); }
 .player-cta { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
 .player-cta h2 { margin-bottom: 4px; }
 .player-cta .hint { margin: 0; }
-.player-cta a.btn { text-decoration: none; display: inline-block; }
+.player-cta a.btn, #minimap-card a.btn { text-decoration: none; display: inline-block; }
 
 /* cabeçalho */
 .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; letter-spacing: -.01em; }
