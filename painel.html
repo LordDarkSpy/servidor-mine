@@ -159,7 +159,7 @@
         <p class="hint">Teclas: <code>J</code> abre o mapa grande, <code>B</code> marca um ponto, <code>V</code> abre o chat de voz (segure <code>Caps Lock</code> para falar; dá para trocar para microfone sempre aberto). A tecla de emotes fica em <b>Opções → Controles → Emotecraft</b>; se ela bater com o <code>B</code> do JourneyMap, troque uma das duas.</p>
       </article>
 
-      <article class="card" id="commands-card" data-tab="jogo" hidden>
+      <article class="card" id="commands-card" data-tab="dev" hidden>
         <div class="bank-head">
           <h2>📜 Seus comandos no jogo</h2>
           <span id="commands-count" class="badge"></span>
@@ -216,6 +216,22 @@
               <button class="btn small" type="submit">Salvar</button>
             </form>
             <p class="hint">Depois que o jogador clica em "Liberar entrada", ele entra quantas vezes quiser nesse tempo.</p>
+          </section>
+
+          <section class="dev-box">
+            <h3>Duração do dia</h3>
+            <form id="dev-day" class="dev-form">
+              <label>Dia claro dura<select name="day_multiplier">
+                <option value="1">1x (normal, ~10 min)</option>
+                <option value="2">2x (~20 min)</option>
+                <option value="3">3x (~30 min)</option>
+                <option value="4">4x (~40 min)</option>
+                <option value="5">5x (~50 min)</option>
+                <option value="6">6x (~1 h)</option>
+              </select></label>
+              <button class="btn small" type="submit">Salvar</button>
+            </form>
+            <p class="hint">Só o dia claro fica mais longo; entardecer, noite e amanhecer seguem normais, e dormir continua pulando a noite. Vale em até 30 segundos, sem reiniciar.</p>
           </section>
 
           <section class="dev-box">

@@ -800,6 +800,13 @@ function renderDev() {
   fillSelect($("#dev-msg").to, d.players, "Todos (aviso no chat)");
   const hours = $("#dev-settings").login_hours;
   if (document.activeElement !== hours) hours.value = d.login_hours;
+  const day = $("#dev-day").day_multiplier;
+  if (document.activeElement !== day && d.day_multiplier != null) {
+    if (![...day.options].some((o) => o.value === String(d.day_multiplier))) {
+      day.append(h("option", { value: String(d.day_multiplier) }, `${d.day_multiplier}x`));
+    }
+    day.value = String(d.day_multiplier);
+  }
   fillSelect($("#dev-sim").player, d.players, d.players.length ? null : "(ninguém online)");
   fillSelect($("#dev-sim").streamer, d.streamers.map((s) => "@" + s), d.streamers.length ? null : "(ninguém com faixas)");
   if (!sim.tier) renderSim();   // só na 1ª vez: o refresh não pode apagar o que está sendo editado
@@ -830,6 +837,15 @@ $("#dev-settings").addEventListener("submit", (ev) => {
   busy(ev.submitter, async () => {
     const r = await api.devSettings({ login_hours: Number(ev.target.login_hours.value) });
     flash(`Liberação de entrada agora vale ${r.login_hours} h (vale para as próximas liberações).`);
+  });
+});
+
+$("#dev-day").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  busy(ev.submitter, async () => {
+    const r = await api.devSettings({ day_multiplier: Number(ev.target.day_multiplier.value) });
+    flash(r.day_multiplier === 1 ? "Dia voltou ao normal (vale em até 30 s)."
+      : `Dia claro agora dura ${r.day_multiplier}x mais (vale em até 30 s).`);
   });
 });
 
@@ -1297,7 +1313,7 @@ async function loadApp() {
   show("view-app");
   const approved = state.me.status === "approved";
   if (approved) await loadBank();
-  if (approved) await loadCommands().catch(() => {});
+  if (approved && state.me.dev) await loadCommands().catch(() => {});
   if (approved) await loadDuels().catch(() => {});
   if (approved && state.me.dev) await loadDev();
   if (approved && state.me.admin) await loadPlayers();
